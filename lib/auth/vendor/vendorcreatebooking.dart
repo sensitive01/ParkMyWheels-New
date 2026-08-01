@@ -1154,13 +1154,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     double appliedValetAmount = 0.0;
     if (_valetEnabled && _isValetSelected && _isValetChargeApplicable()) {
-      double baseAmount = double.tryParse(amount) ?? 0.0;
       double valetAmount = _getValetChargeAmount();
       if (valetAmount > 0) {
-        amount = (baseAmount + valetAmount).toString();
         appliedValetAmount = valetAmount;
       }
     }
+
+    // Valet charge is handled at exit, so we do not add it to the base amount here.
+    // Base amount should remain the pure parking rate.
 
     final String stsSnapshot = _stsForBookingRequest();
     final data = {
@@ -1221,6 +1222,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             responseBody,
             amount,
           );
+          final bool instantReceipt =
+              _selectedOption == 'Instant' &&
+              (vehicleType == 'Car' || vehicleType == 'Bike') &&
+              _selectedPass == null &&
+              isHourly;
 
           await _printTicket(
             vendorName: vendorName,
@@ -1235,6 +1241,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             mobileNumber: mobileController.text,
             includeDuration: false,
             receiptSts: stsSnapshot,
+            instantParkingReceipt: instantReceipt,
             valetChargeAmount:
                 appliedValetAmount > 0 ? appliedValetAmount : null,
           );
