@@ -574,211 +574,222 @@ class _HomeScreenState extends State<vendordashScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 7),
-              child: Skeletonizer(
-                enabled:
-                    _isLoading, // Activate skeleton loading if still loading
-                child:
-                    _isLoading
-                        ? _buildSkeletonLoader()
-                        : Row(
-                          children: [
-                            // Location Icon
-                            Icon(
-                              Icons.location_on_rounded,
-                              color: ColorUtils.primarycolor(),
-                              size: 34,
-                            ),
-                            const SizedBox(width: 10), // Spacing
-                            // Vendor Details (GestureDetector and Text wrapped inside a Column)
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => vendorProfilePage(
-                                          vendorid: widget.vendorid,
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        (_vendor?.vendorName ?? '').length > 15
-                                            ? '${_vendor!.vendorName.substring(0, 20)}...'
-                                            : _vendor?.vendorName ?? '',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            child: Skeletonizer(
+              enabled: _isLoading, // Activate skeleton loading if still loading
+              child:
+                  _isLoading
+                      ? _buildSkeletonLoader()
+                      : Row(
+                        children: [
+                          // Location Icon
+                          Icon(
+                            Icons.location_on_rounded,
+                            color: ColorUtils.primarycolor(),
+                            size: 34,
+                          ),
+                          const SizedBox(width: 10), // Spacing
+                          // Vendor Details (GestureDetector and Text wrapped inside a Column)
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => vendorProfilePage(
+                                        vendorid: widget.vendorid,
                                       ),
-
-                                      const Icon(Icons.arrow_drop_down),
-                                    ],
-                                  ),
-                                  Text(
-                                    getLimitedText(
-                                      _vendor?.address ?? '',
-                                      25,
-                                    ), // Limit to 30 characters
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.black,
+                                ),
+                              );
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      (_vendor?.vendorName ?? '').length > 15
+                                          ? '${_vendor!.vendorName.substring(0, 20)}...'
+                                          : _vendor?.vendorName ?? '',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1, // Ensure single-line display
+
+                                    const Icon(Icons.arrow_drop_down),
+                                  ],
+                                ),
+                                Text(
+                                  getLimitedText(
+                                    _vendor?.address ?? '',
+                                    25,
+                                  ), // Limit to 30 characters
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.black,
                                   ),
-                                ],
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1, // Ensure single-line display
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Spacer to push the CircleAvatar to the far right
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => VendorNotificationScreen(
+                                        vendorid: widget.vendorid,
+                                      ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: ColorUtils.primarycolor(),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundColor: ColorUtils.primarycolor(),
+                                child: const Icon(
+                                  Icons.notifications,
+                                  size: 24,
+                                  color: Colors.white,
+                                ), // Moved inside `child`
                               ),
                             ),
+                          ),
 
-                            // Spacer to push the CircleAvatar to the far right
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => VendorNotificationScreen(
-                                          vendorid: widget.vendorid,
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: ColorUtils.primarycolor(),
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: CircleAvatar(
-                                  radius: 18,
-                                  backgroundColor: ColorUtils.primarycolor(),
-                                  child: const Icon(
-                                    Icons.notifications,
-                                    size: 24,
-                                    color: Colors.white,
-                                  ), // Moved inside `child`
-                                ),
-                              ),
-                            ),
-
-                            // Circle Avatar for Menu Icon
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //           builder: (context) =>
-                            //               vendorProfilePage(vendorid: widget.vendorid)),
-                            //     );
-                            //   },
-                            //   child: Container(
-                            //     decoration: BoxDecoration(
-                            //       shape: BoxShape.circle,
-                            //       border: Border.all(
-                            //         color: ColorUtils.primarycolor(),
-                            //         width: 0.5,
-                            //       ),
-                            //     ),
-                            //     child: CircleAvatar(
-                            //       radius: 20,
-                            //       backgroundColor: Colors.grey[300],
-                            //       backgroundImage: (_vendor?.image.isNotEmpty ?? false)
-                            //           ? NetworkImage(_vendor!.image)
-                            //           : null,
-                            //       child: (_vendor?.image.isEmpty ?? true)
-                            //           ? Icon(Icons.person, size: 14, color: Colors.black54)
-                            //           : null,
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
-                        ),
-              ),
+                          // Circle Avatar for Menu Icon
+                          // GestureDetector(
+                          //   onTap: () {
+                          //     Navigator.push(
+                          //       context,
+                          //       MaterialPageRoute(
+                          //           builder: (context) =>
+                          //               vendorProfilePage(vendorid: widget.vendorid)),
+                          //     );
+                          //   },
+                          //   child: Container(
+                          //     decoration: BoxDecoration(
+                          //       shape: BoxShape.circle,
+                          //       border: Border.all(
+                          //         color: ColorUtils.primarycolor(),
+                          //         width: 0.5,
+                          //       ),
+                          //     ),
+                          //     child: CircleAvatar(
+                          //       radius: 20,
+                          //       backgroundColor: Colors.grey[300],
+                          //       backgroundImage: (_vendor?.image.isNotEmpty ?? false)
+                          //           ? NetworkImage(_vendor!.image)
+                          //           : null,
+                          //       child: (_vendor?.image.isEmpty ?? true)
+                          //           ? Icon(Icons.person, size: 14, color: Colors.black54)
+                          //           : null,
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
             ),
+          ),
 
-            // Padding(
-            //   padding: const EdgeInsets.only(left: 8.0), // Space between search and button
-            //   child: Stack(
-            //     alignment: Alignment.centerRight,
-            //     children: [
-            //       ElevatedButton(
-            //         onPressed: () async {
-            //           String subscriptionStatus = await fetchSubscriptionStatus(widget.vendorid);
-            //
-            //           if (subscriptionStatus == 'true') {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute(
-            //                 builder: (context) => vendorChooseParkingPage(vendorid: widget.vendorid),
-            //               ),
-            //             );
-            //           } else {
-            //             Navigator.push(
-            //               context,
-            //               MaterialPageRoute(
-            //                 builder: (context) => ChoosePlan(vendorid: widget.vendorid),
-            //               ),
-            //             );
-            //           }
-            //         },
-            //         style: ElevatedButton.styleFrom(
-            //           backgroundColor: ColorUtils.primarycolor(),
-            //           foregroundColor: Colors.white,
-            //           shape: RoundedRectangleBorder(
-            //             borderRadius: BorderRadius.circular(5),
-            //             side: BorderSide(color: Colors.black, width: 0.5), // Black border with 0.5px width
-            //           ),
-            //           padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0), // Add top padding for text
-            //           minimumSize: Size(0, 15),
-            //         ),
-            //         child: Column(
-            //           mainAxisAlignment: MainAxisAlignment.start, // Aligns text at the top of the button
-            //           children: [
-            //             Text(
-            //               'New Booking',
-            //               style: GoogleFonts.poppins(
-            //                 fontSize: 12,
-            //                 fontWeight: FontWeight.bold,
-            //                 color: Colors.white, // Correctly setting the text color
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //       ),
-            //       Positioned(
-            //         right: 0, // Adjust this value to control how much of the image is outside
-            //         top: -5,
-            //
-            //         child: Container(
-            //           width: 35, // Controls the visible part of the image
-            //           height: 35, // Optional: Adjust size of the image as needed
-            //           child: Image.asset('assets/subscribe.png'),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            const SizedBox(height: 15),
+          // Padding(
+          //   padding: const EdgeInsets.only(left: 8.0), // Space between search and button
+          //   child: Stack(
+          //     alignment: Alignment.centerRight,
+          //     children: [
+          //       ElevatedButton(
+          //         onPressed: () async {
+          //           String subscriptionStatus = await fetchSubscriptionStatus(widget.vendorid);
+          //
+          //           if (subscriptionStatus == 'true') {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => vendorChooseParkingPage(vendorid: widget.vendorid),
+          //               ),
+          //             );
+          //           } else {
+          //             Navigator.push(
+          //               context,
+          //               MaterialPageRoute(
+          //                 builder: (context) => ChoosePlan(vendorid: widget.vendorid),
+          //               ),
+          //             );
+          //           }
+          //         },
+          //         style: ElevatedButton.styleFrom(
+          //           backgroundColor: ColorUtils.primarycolor(),
+          //           foregroundColor: Colors.white,
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(5),
+          //             side: BorderSide(color: Colors.black, width: 0.5), // Black border with 0.5px width
+          //           ),
+          //           padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0), // Add top padding for text
+          //           minimumSize: Size(0, 15),
+          //         ),
+          //         child: Column(
+          //           mainAxisAlignment: MainAxisAlignment.start, // Aligns text at the top of the button
+          //           children: [
+          //             Text(
+          //               'New Booking',
+          //               style: GoogleFonts.poppins(
+          //                 fontSize: 12,
+          //                 fontWeight: FontWeight.bold,
+          //                 color: Colors.white, // Correctly setting the text color
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //       Positioned(
+          //         right: 0, // Adjust this value to control how much of the image is outside
+          //         top: -5,
+          //
+          //         child: Container(
+          //           width: 35, // Controls the visible part of the image
+          //           height: 35, // Optional: Adjust size of the image as needed
+          //           child: Image.asset('assets/subscribe.png'),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          const SizedBox(height: 15),
 
-            Padding(
-              padding: const EdgeInsets.only(left: 7.0, right: 7.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
+          Padding(
+            padding: const EdgeInsets.only(left: 7.0, right: 7.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) =>
+                                  vSearchScreen(vendorid: widget.vendorid),
+                        ),
+                      );
+                    },
+                    child: TextFormField(
+                      readOnly: true,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -789,218 +800,206 @@ class _HomeScreenState extends State<vendordashScreen>
                           ),
                         );
                       },
-                      child: TextFormField(
-                        readOnly: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      vSearchScreen(vendorid: widget.vendorid),
-                            ),
-                          );
-                        },
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFFF1F2F3),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: ColorUtils.secondarycolor(),
-                              width: 0.5,
-                            ),
-                            borderRadius: BorderRadius.circular(5),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFFF1F2F3),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: ColorUtils.secondarycolor(),
+                            width: 0.5,
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide(
-                              color: ColorUtils.secondarycolor(),
-                              width: 0.5,
-                            ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide(
+                            color: ColorUtils.secondarycolor(),
+                            width: 0.5,
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: BorderSide(
-                              color: ColorUtils.secondarycolor(),
-                              width: 0.5,
-                            ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide(
+                            color: ColorUtils.secondarycolor(),
+                            width: 0.5,
                           ),
-                          prefixIcon: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => vSearchScreen(
-                                        vendorid: widget.vendorid,
-                                      ),
-                                ),
-                              );
-                            },
-                            child: Icon(
-                              Icons.search,
-                              color: ColorUtils.primarycolor(),
-                            ),
+                        ),
+                        prefixIcon: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => vSearchScreen(
+                                      vendorid: widget.vendorid,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Icon(
+                            Icons.search,
+                            color: ColorUtils.primarycolor(),
                           ),
-                          constraints: const BoxConstraints(
-                            maxHeight: 36, // Reduced height
-                            maxWidth: double.infinity,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 12,
-                          ), // Reduced padding
-                          hintText: 'Search ',
-                          hintStyle: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
+                        ),
+                        constraints: const BoxConstraints(
+                          maxHeight: 36, // Reduced height
+                          maxWidth: double.infinity,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ), // Reduced padding
+                        hintText: 'Search ',
+                        hintStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w300,
+                          fontSize: 14,
+                          color: Colors.black,
                         ),
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 5.0,
-                    ), // Space between search and button
-                    child: Stack(
-                      clipBehavior: Clip.none, // Allows overflow
-                      alignment: Alignment.centerRight,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            String subscriptionStatus =
-                                await fetchSubscriptionStatus(widget.vendorid);
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 5.0,
+                  ), // Space between search and button
+                  child: Stack(
+                    clipBehavior: Clip.none, // Allows overflow
+                    alignment: Alignment.centerRight,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          String subscriptionStatus =
+                              await fetchSubscriptionStatus(widget.vendorid);
 
-                            if (subscriptionStatus == 'true') {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => vendorChooseParkingPage(
-                                        vendorid: widget.vendorid,
-                                      ),
-                                ),
-                              ).then((value) {
-                                if (mounted) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    PageRouteBuilder(
-                                      pageBuilder:
-                                          (context, animation1, animation2) =>
-                                              vendordashScreen(
-                                                vendorid: widget.vendorid,
-                                                initialTabIndex:
-                                                    value is int
-                                                        ? value
-                                                        : _currentSegment,
-                                              ),
-                                      transitionDuration: Duration.zero,
-                                      reverseTransitionDuration: Duration.zero,
+                          if (subscriptionStatus == 'true') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => vendorChooseParkingPage(
+                                      vendorid: widget.vendorid,
                                     ),
-                                  );
-                                }
-                              });
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          ChoosePlan(vendorid: widget.vendorid),
-                                ),
-                              ).then((value) {
-                                if (mounted) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    PageRouteBuilder(
-                                      pageBuilder:
-                                          (context, animation1, animation2) =>
-                                              vendordashScreen(
-                                                vendorid: widget.vendorid,
-                                                initialTabIndex:
-                                                    value is int
-                                                        ? value
-                                                        : _currentSegment,
-                                              ),
-                                      transitionDuration: Duration.zero,
-                                      reverseTransitionDuration: Duration.zero,
-                                    ),
-                                  );
-                                }
-                              });
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorUtils.primarycolor(),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                              side: const BorderSide(
-                                color: Color(0xFFE4AC3F),
-                                width: 1.5,
                               ),
-
-                              // Black border with 0.5px width
+                            ).then((value) {
+                              if (mounted) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder:
+                                        (context, animation1, animation2) =>
+                                            vendordashScreen(
+                                              vendorid: widget.vendorid,
+                                              initialTabIndex:
+                                                  value is int
+                                                      ? value
+                                                      : _currentSegment,
+                                            ),
+                                    transitionDuration: Duration.zero,
+                                    reverseTransitionDuration: Duration.zero,
+                                  ),
+                                );
+                              }
+                            });
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        ChoosePlan(vendorid: widget.vendorid),
+                              ),
+                            ).then((value) {
+                              if (mounted) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder:
+                                        (context, animation1, animation2) =>
+                                            vendordashScreen(
+                                              vendorid: widget.vendorid,
+                                              initialTabIndex:
+                                                  value is int
+                                                      ? value
+                                                      : _currentSegment,
+                                            ),
+                                    transitionDuration: Duration.zero,
+                                    reverseTransitionDuration: Duration.zero,
+                                  ),
+                                );
+                              }
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorUtils.primarycolor(),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            side: const BorderSide(
+                              color: Color(0xFFE4AC3F),
+                              width: 1.5,
                             ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 4.0,
-                              horizontal: 10.0,
-                            ), // Reduced vertical padding
-                            minimumSize: const Size(0, 36),
+
+                            // Black border with 0.5px width
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset('assets/addicon.png', height: 20),
-                              const SizedBox(
-                                width: 5.0,
-                              ), // Space between icon and text
-                              Text(
-                                'New Booking',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      Colors
-                                          .white, // Correctly setting the text color
-                                ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 4.0,
+                            horizontal: 10.0,
+                          ), // Reduced vertical padding
+                          minimumSize: const Size(0, 36),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/addicon.png', height: 20),
+                            const SizedBox(
+                              width: 5.0,
+                            ), // Space between icon and text
+                            Text(
+                              'New Booking',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    Colors
+                                        .white, // Correctly setting the text color
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                        Positioned(
-                          top:
-                              -18, // Move the image upwards to position it in the top half
-                          right:
-                              10, // Adjust this value to control how much of the image is outside
-                          child: SizedBox(
-                            width: 80, // Controls the visible part of the image
-                            height: 35, // Adjust size of the image as needed
-                            child: Image.asset('assets/subscribe.png'),
-                          ),
+                      ),
+                      Positioned(
+                        top:
+                            -18, // Move the image upwards to position it in the top half
+                        right:
+                            10, // Adjust this value to control how much of the image is outside
+                        child: SizedBox(
+                          width: 80, // Controls the visible part of the image
+                          height: 35, // Adjust size of the image as needed
+                          child: Image.asset('assets/subscribe.png'),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
 
-            // SizedBox(height: 15,),
-            //
-            //
-            //
-            // SizedBox(height: 15,),
-            const SizedBox(height: 10),
+          // SizedBox(height: 15,),
+          //
+          //
+          //
+          // SizedBox(height: 15,),
+          const SizedBox(height: 10),
 
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.zero,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF1F2F3),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.zero,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1F2F3),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(
                       10,
@@ -1143,9 +1142,9 @@ class _HomeScreenState extends State<vendordashScreen>
                 ),
               ),
             ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3845,6 +3844,7 @@ class UniversalPrintHelper {
     bool skipChargeLookup = false,
     bool instantParkingReceipt = false,
     double? valetCharge,
+    String? operationalTimings,
   }) async {
     final String headerVendorName =
         vendorName.trim().isEmpty ? 'Vendor' : vendorName.trim();
@@ -3981,6 +3981,12 @@ class UniversalPrintHelper {
       }
     }
 
+    if (operationalTimings != null && operationalTimings.isNotEmpty) {
+      await SunmiPrinter.lineWrap(1);
+      await SunmiPrinter.setAlignment(1);
+      await SunmiPrinter.printText('Timings : $operationalTimings');
+    }
+
     await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.setAlignment(1);
     await SunmiPrinter.printText(
@@ -4017,6 +4023,7 @@ class UniversalPrintHelper {
     List<String>? slabLinesOverride,
     bool instantParkingReceipt = false,
     double? valetCharge,
+    String? operationalTimings,
   }) async {
     final String headerVendorName =
         vendorName.trim().isEmpty ? 'Vendor' : vendorName.trim();
@@ -4190,6 +4197,12 @@ class UniversalPrintHelper {
       }
     }
 
+    if (operationalTimings != null && operationalTimings.isNotEmpty) {
+      bytes += [0x1B, 0x61, 0x01]; // ESC a 1 (Centered)
+      bytes += 'Timings : $operationalTimings'.codeUnits;
+      bytes += [0x0A]; // Line feed
+    }
+
     // Separator above footer — center
     bytes += [0x1B, 0x61, 0x01]; // ESC a 1 (Centered)
     bytes +=
@@ -4285,6 +4298,38 @@ class UniversalPrintHelper {
       );
       print('Receipt invoice id: "$resolvedInvoiceId"');
 
+      String? operationalTimings;
+      try {
+        final response = await http.get(
+          Uri.parse('${ApiConfig.baseUrl}vendor/fetchbusinesshours/$vendorId'),
+        ).timeout(const Duration(seconds: 3));
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['businessHours'] != null) {
+            final List businessHours = data['businessHours'];
+            final today = DateFormat('EEEE').format(DateTime.now());
+            final todayTiming = businessHours.firstWhere(
+              (b) => (b['day'] ?? '').toString().toLowerCase() == today.toLowerCase(),
+              orElse: () => null,
+            );
+            if (todayTiming != null && todayTiming['openTime'] != null && todayTiming['closeTime'] != null) {
+              String formatTime(String t) {
+                try {
+                  final p = t.split(':');
+                  int h = int.parse(p[0]);
+                  String ampm = h >= 12 ? 'PM' : 'AM';
+                  int h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                  return '${h12.toString().padLeft(2, '0')}:${p[1]} $ampm';
+                } catch (_) { return t; }
+              }
+              operationalTimings = '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
+            }
+          }
+        }
+      } catch (e) {
+        print('Error fetching operational timings for print: $e');
+      }
+
       final bool skipChargeLookup = fastPrint;
       final String printerType = await detectPrinterType(fast: fastPrint);
 
@@ -4311,6 +4356,7 @@ class UniversalPrintHelper {
             skipChargeLookup: skipChargeLookup,
             instantParkingReceipt: instantParkingReceipt,
             valetCharge: valetCharge,
+            operationalTimings: operationalTimings,
           );
         } else {
           _clearPrinterCache();
@@ -4338,6 +4384,7 @@ class UniversalPrintHelper {
             skipChargeLookup: skipChargeLookup,
             instantParkingReceipt: instantParkingReceipt,
             valetCharge: valetCharge,
+            operationalTimings: operationalTimings,
           );
         } else {
           _clearPrinterCache();

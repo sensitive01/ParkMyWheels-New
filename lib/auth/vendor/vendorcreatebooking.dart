@@ -1975,6 +1975,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     required String mobileNumber,
     String? receiptSts,
     bool instantParkingReceipt = false,
+    String? operationalTimings,
   }) async {
     final displayId = UniversalPrintHelper.formatReceiptBookingId(invoiceId);
     final vehicleLine =
@@ -2077,6 +2078,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       }
     }
 
+    if (operationalTimings != null && operationalTimings.isNotEmpty) {
+      await SunmiPrinter.lineWrap(1);
+      await SunmiPrinter.setAlignment(1);
+      await SunmiPrinter.printText('Timings : $operationalTimings');
+    }
+
     await SunmiPrinter.setAlignment(1);
     await SunmiPrinter.printText(
       'we are not responsible for any belongings inside and outside of the vehicle.',
@@ -2135,6 +2142,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     String? receiptSts,
     bool instantParkingReceipt = false,
     double? valetChargeAmount,
+    String? operationalTimings,
   }) async {
     if (!Platform.isAndroid) {
       _showError(_printerTroubleshootMsg);
@@ -2148,6 +2156,43 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           );
       final String? printInvoiceId =
           resolvedInvoiceId.isNotEmpty ? resolvedInvoiceId : null;
+
+      String? operationalTimings;
+      try {
+        print('DEBUG PRINT: Starting fetchbusinesshours for vendorid = ${widget.vendorid}');
+        final response = await http.get(
+          Uri.parse('${ApiConfig.baseUrl}vendor/fetchbusinesshours/${widget.vendorid}'),
+        ).timeout(const Duration(seconds: 3));
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          print('DEBUG PRINT: BUSINESS HOURS DATA = $data');
+          if (data['businessHours'] != null) {
+            final List businessHours = data['businessHours'];
+            final today = DateFormat('EEEE').format(DateTime.now());
+            final todayTiming = businessHours.firstWhere(
+              (b) => (b['day'] ?? '').toString().toLowerCase() == today.toLowerCase(),
+              orElse: () => null,
+            );
+            if (todayTiming != null && todayTiming['openTime'] != null && todayTiming['closeTime'] != null) {
+              String formatTime(String t) {
+                try {
+                  final p = t.split(':');
+                  int h = int.parse(p[0]);
+                  String ampm = h >= 12 ? 'PM' : 'AM';
+                  int h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
+                  return '${h12.toString().padLeft(2, '0')}:${p[1]} $ampm';
+                } catch (_) { return t; }
+              }
+              operationalTimings = '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
+            }
+          }
+        } else {
+          print('DEBUG PRINT: API returned status code ${response.statusCode}');
+        }
+      } catch (e) {
+        print('DEBUG PRINT: Error fetching operational timings for print: $e');
+      }
+      print('DEBUG PRINT: Final operationalTimings = $operationalTimings');
 
       final String printerType = await UniversalPrintHelper.detectPrinterType(
         fast: true,
@@ -2169,6 +2214,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           mobileNumber: mobileNumber,
           receiptSts: receiptSts,
           instantParkingReceipt: instantParkingReceipt,
+          operationalTimings: operationalTimings,
         );
         return;
       }
@@ -2200,6 +2246,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           slabLinesOverride: _getHourlyPricingSlabLinesForVehicle(vehicleType),
           instantParkingReceipt: instantParkingReceipt,
           valetCharge: valetChargeAmount,
+          operationalTimings: operationalTimings,
         );
         return;
       }
