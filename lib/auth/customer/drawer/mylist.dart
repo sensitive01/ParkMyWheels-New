@@ -5466,7 +5466,7 @@ class myspacesubleft extends StatelessWidget {
                   padding: const EdgeInsets.all(
                       5.0), // Added padding for better spacing
                   child: Text(
-                    ' $formattedDate, ${vehicle.parkingTime}',
+                    'Booking on : $formattedDate, ${vehicle.parkingTime}',
                     style: GoogleFonts.poppins(
                       color: Colors.white,
 

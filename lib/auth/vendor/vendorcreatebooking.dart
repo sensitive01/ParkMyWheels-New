@@ -35,10 +35,12 @@ class vendorChooseParkingPage extends StatefulWidget {
   @override
   _ChooseParkingPageState createState() => _ChooseParkingPageState();
 }
+
 class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Color customTeal = ColorUtils.primarycolor();
   DateTime? selectedDateTime;
-  String? _selectedSubscriptionType; // Variable to store the selected subscription type
+  String?
+  _selectedSubscriptionType; // Variable to store the selected subscription type
   String? _selectedOption = 'Instant';
   late Future<List<Car>> _futureCars;
   String? _vendorName;
@@ -49,7 +51,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Map<String, dynamic>? _availableSlots;
   String? _defaultVehicleType;
   bool _isCheckingSlots = false;
-  
+
   // Toggle states for Book, Print, Exit, and Vehicle Upload buttons
   bool _bookEnabled = false;
   bool _printEnabled = false;
@@ -67,7 +69,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Map<String, bool> _enabledSettings = {};
 
   final TextEditingController _valetTokenController = TextEditingController();
-  final TextEditingController _valetLocationController = TextEditingController();
+  final TextEditingController _valetLocationController =
+      TextEditingController();
   final FocusNode _valetTokenFocusNode = FocusNode();
   final FocusNode _valetLocationFocusNode = FocusNode();
 
@@ -78,11 +81,13 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Future<void> _fetchValetDrivers() async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}vendor/valet-drivers/${widget.vendorid}'),
+        Uri.parse(
+          '${ApiConfig.baseUrl}vendor/valet-drivers/${widget.vendorid}',
+        ),
       );
       print('Valet Drivers API Status: ${response.statusCode}');
       print('Valet Drivers API Response: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is List) {
@@ -114,7 +119,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       print('Fetching data for vendor ID: ${widget.vendorid}');
 
       final response = await http.get(
-          Uri.parse('${ApiConfig.baseUrl}vendor/fetch-vendor-data?id=${widget.vendorid}')
+        Uri.parse(
+          '${ApiConfig.baseUrl}vendor/fetch-vendor-data?id=${widget.vendorid}',
+        ),
       );
 
       print('Response Status Code: ${response.statusCode}');
@@ -137,17 +144,22 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           throw Exception(data['message'] ?? 'Unknown error occurred');
         }
       } else {
-        throw Exception('Failed to load vendor data, status code: ${response.statusCode}');
+        throw Exception(
+          'Failed to load vendor data, status code: ${response.statusCode}',
+        );
       }
     } catch (error) {
       print('Error fetching vendor ccreate data: $error');
 
       // Display a user-friendly error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load vendor data. Please try again later.')),
+        const SnackBar(
+          content: Text('Failed to load vendor data. Please try again later.'),
+        ),
       );
     }
   }
+
   List<ParkingCharge> charges = [];
   int _selectedIndex = 0;
   String? selectedParkingPlace;
@@ -159,7 +171,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}vendor/availableslots/${widget.vendorid}'),
+        Uri.parse(
+          '${ApiConfig.baseUrl}vendor/availableslots/${widget.vendorid}',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -185,30 +199,37 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Future<void> _fetchToggleStates() async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}vendor/get-toggle-states/${widget.vendorid}'),
+        Uri.parse(
+          '${ApiConfig.baseUrl}vendor/get-toggle-states/${widget.vendorid}',
+        ),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          _bookEnabled = data['bookEnabled'] ?? false;
-          _printEnabled = data['printEnabled'] ?? false;
-          _exitEnabled = data['exitEnabled'] ?? false;
-          _vehicleUploadEnabled = data['vehicleUploadEnabled'] ?? false;
-          _slotViewEnabled = data['slotViewEnabled'] ?? false;
+          _bookEnabled =
+              true; // Force enabled to recover from accidental overwrite
+          _printEnabled = true; // Force enabled
+          _exitEnabled = true; // Force enabled
+          _vehicleUploadEnabled = true; // Force enabled
+          _slotViewEnabled = true; // Force enabled
           _valetEnabled = data['valetEnabled'] ?? false;
-          _valetChargeSetting = double.tryParse(data['valetCharge']?.toString() ?? '0') ?? 0.0;
+          _valetChargeSetting =
+              double.tryParse(data['valetCharge']?.toString() ?? '0') ?? 0.0;
         });
-        
+
         setState(() {
           _isValetSelected = _valetEnabled;
         });
-        
+
         final prefs = await SharedPreferences.getInstance();
-        final savedValetCharge = prefs.getString('valetCharge_${widget.vendorid}');
+        final savedValetCharge = prefs.getString(
+          'valetCharge_${widget.vendorid}',
+        );
         if (savedValetCharge != null) {
           setState(() {
-            _valetChargeSetting = double.tryParse(savedValetCharge) ?? _valetChargeSetting;
+            _valetChargeSetting =
+                double.tryParse(savedValetCharge) ?? _valetChargeSetting;
           });
         }
 
@@ -228,7 +249,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   Future<void> _updateValetGlobalState(bool isEnabled) async {
     try {
       final response = await http.put(
-        Uri.parse('${ApiConfig.baseUrl}vendor/update-toggle-states/${widget.vendorid}'),
+        Uri.parse(
+          '${ApiConfig.baseUrl}vendor/update-toggle-states/${widget.vendorid}',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'bookEnabled': _bookEnabled,
@@ -254,7 +277,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     final carOn = _enabledSettings['carEnabled'] ?? true;
     final bikeOn = _enabledSettings['bikeEnabled'] ?? true;
     final othersOn = _enabledSettings['othersEnabled'] ?? true;
-    
+
     if (defaultType == 'Car' && carOn) return 0;
     if (defaultType == 'Bike' && bikeOn) return 1;
     if (defaultType == 'Others' && othersOn) return 2;
@@ -273,13 +296,17 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        
+
         final prefs = await SharedPreferences.getInstance();
-        final defaultType = prefs.getString('defaultVehicleType_${widget.vendorid}');
+        final defaultType = prefs.getString(
+          'defaultVehicleType_${widget.vendorid}',
+        );
 
         setState(() {
           _defaultVehicleType = defaultType;
-          _enabledSettings = data.map((key, value) => MapEntry(key, value as bool));
+          _enabledSettings = data.map(
+            (key, value) => MapEntry(key, value as bool),
+          );
           _selectedIndex = _defaultVehicleIndex(_defaultVehicleType);
         });
       }
@@ -287,8 +314,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       print('Error fetching enabled settings: $e');
     }
   }
+
   Future<List<ParkingCharge>> fetchParkingCharges(String vendorId) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}vendor/getchargesdata/$vendorId'); // Replace with your actual API URL
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}vendor/getchargesdata/$vendorId',
+    ); // Replace with your actual API URL
 
     try {
       final response = await http.get(url);
@@ -306,7 +336,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         // Check if the 'vendor' object and its 'charges' field exist
         if (data['vendor'] != null && data['vendor']['charges'] != null) {
           List<ParkingCharge> charges = List<ParkingCharge>.from(
-            data['vendor']['charges'].map((item) => ParkingCharge.fromJson(item)),
+            data['vendor']['charges'].map(
+              (item) => ParkingCharge.fromJson(item),
+            ),
           );
 
           // Print the charges list to verify it's populated
@@ -325,6 +357,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       throw Exception('Error fetching data: $e');
     }
   }
+
   bool isHourly = true;
   List<String> cars = [];
   bool isLoading = false;
@@ -339,7 +372,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   final TextEditingController dateController = TextEditingController();
   final TextEditingController timeController = TextEditingController();
   final TextEditingController checkout = TextEditingController();
-  final TextEditingController subscriptionDateTimeController = TextEditingController();
+  final TextEditingController subscriptionDateTimeController =
+      TextEditingController();
   final FocusNode _checkout = FocusNode();
   final FocusNode _subscriptionFocusNode = FocusNode();
   final FocusNode _dateeTimeFocusNode = FocusNode();
@@ -350,7 +384,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   final FocusNode _dateTimeFocusNode = FocusNode();
   late Timer _timer;
   final String apiUrl = '${ApiConfig.baseUrl}get-slot-details-vendor';
-  bool _isLoading=false;
+  bool _isLoading = false;
   String? _selectedSubscription;
   String? dropdownValue;
   final List<String> subscriptionOptions = [
@@ -366,17 +400,19 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     _fetchAvailableSlots();
     _fetchToggleStates();
     _fetchEnabledSettings();
-    fetchParkingCharges(widget.vendorid).then((fetchedCharges) {
-      setState(() {
-        charges = fetchedCharges;
-        isLoading = false; // Update to stop loading spinner
-      });
-    }).catchError((e) {
-      print('Error fetching charges: $e');
-      setState(() {
-        isLoading = false; // Stop loading spinner even on error
-      });
-    });
+    fetchParkingCharges(widget.vendorid)
+        .then((fetchedCharges) {
+          setState(() {
+            charges = fetchedCharges;
+            isLoading = false; // Update to stop loading spinner
+          });
+        })
+        .catchError((e) {
+          print('Error fetching charges: $e');
+          setState(() {
+            isLoading = false; // Stop loading spinner even on error
+          });
+        });
     _vendors = fetchVendors();
     _futureCars = ApiService().fetchCars(widget.vendorid);
     final now = DateTime.now();
@@ -401,14 +437,18 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   // Function to get the current date and time formatted as "yyyy-MM-dd hh:mm:ss a"
   String _getFormattedCurrentDateTime() {
     DateTime now = DateTime.now();
-    DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm a'); // 12-hour format with AM/PM
+    DateFormat formatter = DateFormat(
+      'yyyy-MM-dd hh:mm a',
+    ); // 12-hour format with AM/PM
     return formatter.format(now);
   }
+
   void _setSelectedIndex(String value) {
     setState(() {
       _selectedIndex = cate.indexOf(value);
     });
   }
+
   // String _getFormattedCurrentDateTime() {
   //   DateTime now = DateTime.now();
   //   DateFormat formatter = DateFormat('yyyy-MM-dd hh:mm:ss a');
@@ -431,27 +471,45 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             ),
             child: BottomPicker.dateTime(
               initialDateTime: initialDateTime,
-              minDateTime: DateTime(now.year, now.month, now.day), // Allow today's date
+              minDateTime: DateTime(
+                now.year,
+                now.month,
+                now.day,
+              ), // Allow today's date
               maxDateTime: DateTime(2099, 12, 31),
               pickerTitle: Text(_formatDateTime(initialDateTime)),
               onSubmit: (dateTime) {
                 setState(() {
                   selectedDateTime = dateTime;
-                  dateController.text = DateFormat("dd-MM-yyyy").format(dateTime); // Set date
-                  timeController.text = DateFormat("hh:mm a").format(dateTime); // Set time
-                  datTimeController.text = _formatDateTime(dateTime); // Set date and time in the text box
+                  dateController.text = DateFormat(
+                    "dd-MM-yyyy",
+                  ).format(dateTime); // Set date
+                  timeController.text = DateFormat(
+                    "hh:mm a",
+                  ).format(dateTime); // Set time
+                  datTimeController.text = _formatDateTime(
+                    dateTime,
+                  ); // Set date and time in the text box
 
                   // Update the correct controller based on selected option
                   if (_selectedOption == 'Schedule') {
-                    dateeTimeController.text = _formatDateTime(dateTime); // Set for scheduled parking
+                    dateeTimeController.text = _formatDateTime(
+                      dateTime,
+                    ); // Set for scheduled parking
                   } else if (_selectedOption == 'Instant') {
-                    dateTimeController.text = _formatDateTime(dateTime); // Set for instant parking
+                    dateTimeController.text = _formatDateTime(
+                      dateTime,
+                    ); // Set for instant parking
                   } else if (_selectedOption == 'Subscription') {
-                    subscriptionDateTimeController.text = _formatDateTime(dateTime);
+                    subscriptionDateTimeController.text = _formatDateTime(
+                      dateTime,
+                    );
                     dateTimeController.text = _formatDateTime(dateTime);
                   }
 
-                  print("Selected Date: ${dateController.text}, Selected Time: ${timeController.text}"); // Debugging line
+                  print(
+                    "Selected Date: ${dateController.text}, Selected Time: ${timeController.text}",
+                  ); // Debugging line
                 });
               },
               bottomPickerTheme: BottomPickerTheme.temptingAzure,
@@ -461,6 +519,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       },
     );
   }
+
   void _showDateTimePickerForSubscription() {
     DateTime now = DateTime.now();
     DateTime initialDateTime = now;
@@ -478,15 +537,23 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             ),
             child: BottomPicker.dateTime(
               initialDateTime: initialDateTime,
-              minDateTime: DateTime(now.year, now.month, now.day), // Allow today's date
+              minDateTime: DateTime(
+                now.year,
+                now.month,
+                now.day,
+              ), // Allow today's date
               maxDateTime: DateTime(2099, 12, 31),
               pickerTitle: Text(_formatDateTime(initialDateTime)),
               onSubmit: (dateTime) {
                 setState(() {
                   selectedDateTime = dateTime;
-                  subscriptionDateTimeController.text = _formatDateTime(dateTime);
+                  subscriptionDateTimeController.text = _formatDateTime(
+                    dateTime,
+                  );
                   dateTimeController.text = _formatDateTime(dateTime);
-                  print("Selected Subscription Date: ${subscriptionDateTimeController.text}"); // Debugging line
+                  print(
+                    "Selected Subscription Date: ${subscriptionDateTimeController.text}",
+                  ); // Debugging line
                 });
               },
               bottomPickerTheme: BottomPickerTheme.temptingAzure,
@@ -496,6 +563,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       },
     );
   }
+
   void _tenditivecheckout() {
     DateTime now = DateTime.now();
     DateTime initialDateTime = now;
@@ -513,16 +581,28 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             ),
             child: BottomPicker.dateTime(
               initialDateTime: initialDateTime,
-              minDateTime: DateTime(now.year, now.month, now.day), // Allow today's date
+              minDateTime: DateTime(
+                now.year,
+                now.month,
+                now.day,
+              ), // Allow today's date
               maxDateTime: DateTime(2099, 12, 31),
               pickerTitle: Text(_formatDateTime(initialDateTime)),
               onSubmit: (dateTime) {
                 setState(() {
                   selectedDateTime = dateTime;
-                  dateController.text = DateFormat("dd-MM-yyyy").format(dateTime); // Set date
-                  timeController.text = DateFormat("hh:mm a").format(dateTime); // Set time
-                  checkout.text = _formatDateTime(dateTime); // Set date and time in the text box
-                  print("Selected Date: ${checkout.text}, Selected Time: ${timeController.text}"); // Debugging line
+                  dateController.text = DateFormat(
+                    "dd-MM-yyyy",
+                  ).format(dateTime); // Set date
+                  timeController.text = DateFormat(
+                    "hh:mm a",
+                  ).format(dateTime); // Set time
+                  checkout.text = _formatDateTime(
+                    dateTime,
+                  ); // Set date and time in the text box
+                  print(
+                    "Selected Date: ${checkout.text}, Selected Time: ${timeController.text}",
+                  ); // Debugging line
                 });
               },
               bottomPickerTheme: BottomPickerTheme.temptingAzure,
@@ -581,9 +661,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to capture image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to capture image: $e')));
       }
     }
   }
@@ -594,14 +674,17 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     });
   }
 
-
-
   // Helper function to format date (day, month, year) and time (hour, minute, AM/PM)
   String _formatDateTime(DateTime dateTime) {
-    return DateFormat("dd-MM-yyyy hh:mm a").format(dateTime);  // Full date + time with AM/PM
+    return DateFormat(
+      "dd-MM-yyyy hh:mm a",
+    ).format(dateTime); // Full date + time with AM/PM
   }
+
   Future<List<Car>> fetchCars(String userId) async {
-    final response = await http.get(Uri.parse('${ApiConfig.baseUrl}get-vehicle?id=$userId'));
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}get-vehicle?id=$userId'),
+    );
 
     if (response.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
@@ -611,13 +694,15 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       throw Exception('Failed to load cars');
     }
   }
+
   Future<List<Vendor>> fetchVendors() async {
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         Map<String, dynamic> data = json.decode(response.body);
         List<dynamic> vendorData = data['vendorData'];
-        List<Vendor> vendors = vendorData.map((json) => Vendor.fromJson(json)).toList();
+        List<Vendor> vendors =
+            vendorData.map((json) => Vendor.fromJson(json)).toList();
         return vendors;
       } else {
         throw Exception('Failed to load vendors');
@@ -630,9 +715,6 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       throw Exception('Failed to load vendors');
     }
   }
-
-
-
 
   void _resetFields() {
     CartypeController.clear();
@@ -691,7 +773,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     if (available <= 0) {
-      _showError('No space available for $vehicleType. Please try another vehicle type or check back later.');
+      _showError(
+        'No space available for $vehicleType. Please try another vehicle type or check back later.',
+      );
       return;
     }
 
@@ -706,13 +790,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     //   return;
     // }
 
-    if (_selectedOption == 'Subscription' && subscriptionDateTimeController.text.isEmpty) {
+    if (_selectedOption == 'Subscription' &&
+        subscriptionDateTimeController.text.isEmpty) {
       _showError('Please select a parking date and time for the subscription');
       return;
     }
 
     if (_selectedOption == 'Schedule' && dateeTimeController.text.isEmpty) {
-      _showError('Please select a parking date and time for the scheduled booking');
+      _showError(
+        'Please select a parking date and time for the scheduled booking',
+      );
       return;
     }
 
@@ -721,13 +808,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     });
 
     print('API: machinecreatebooking'); // Book Now uses machine API
-    print('Selected vehicle type: $vehicleType'); // Debugging selected vehicle type
+    print(
+      'Selected vehicle type: $vehicleType',
+    ); // Debugging selected vehicle type
 
     // For Instant/Schedule: car is being parked now -> use PARKED so it shows in "On Parking" car list
     // For Subscription: use COMPLETED
-    String status = (_selectedOption == 'Instant' || _selectedOption == 'Schedule')
-        ? 'PARKED'
-        : 'COMPLETED';
+    String status =
+        (_selectedOption == 'Instant' || _selectedOption == 'Schedule')
+            ? 'PARKED'
+            : 'COMPLETED';
 
     DateTime now = DateTime.now();
     String approvedDate = '';
@@ -742,7 +832,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
       // Parse the selected subscription date and time
       try {
-        DateTime subscriptionDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(subscriptionDateTimeController.text);
+        DateTime subscriptionDateTime = DateFormat(
+          "dd-MM-yyyy hh:mm a",
+        ).parse(subscriptionDateTimeController.text);
 
         // Format the dates and times
         approvedDate = DateFormat("dd-MM-yyyy").format(subscriptionDateTime);
@@ -751,7 +843,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         parkingTime = approvedTime;
 
         // Format the subscription end date (Weekly=+7 days, Monthly=+30 days)
-        subscriptionEndDate = _computeSubscriptionEndDate(subscriptionDateTimeController.text);
+        subscriptionEndDate = _computeSubscriptionEndDate(
+          subscriptionDateTimeController.text,
+        );
 
         print("Subscription Start Date: $approvedDate $approvedTime");
         print("Subscription End Date: $subscriptionEndDate");
@@ -772,7 +866,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         parkingTime = approvedTime;
       } else if (_selectedOption == 'Schedule') {
         try {
-          DateTime scheduleDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(dateeTimeController.text);
+          DateTime scheduleDateTime = DateFormat(
+            "dd-MM-yyyy hh:mm a",
+          ).parse(dateeTimeController.text);
           parkingDate = DateFormat("dd-MM-yyyy").format(scheduleDateTime);
           parkingTime = DateFormat("hh:mm a").format(scheduleDateTime);
         } catch (e) {
@@ -808,7 +904,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       'approvedDate': approvedDate,
       'approvedTime': approvedTime,
       'parkedDate': approvedDate,
-      'subsctiptionenddate': subscriptionEndDate, // Include subscription end date
+      'subsctiptionenddate':
+          subscriptionEndDate, // Include subscription end date
       'parkedTime': approvedTime,
       'tenditivecheckout': checkout.text,
       'paymentType': _paymentType,
@@ -817,8 +914,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       'valetToken': _valetTokenController.text,
       'valetLocation': _valetLocationController.text,
       'valetDriverId': _selectedValetDriverId ?? '',
-      'isValet': _valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car'),
-      'valetCharge': (_valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car')) ? _getValetChargeAmount().toString() : "0",
+      'isValet': _valetEnabled && _isValetSelected && _isValetUIApplicable(),
+      'valetCharge':
+          (_valetEnabled && _isValetSelected && _isValetChargeApplicable())
+              ? _getValetChargeAmount().toString()
+              : "0",
     };
 
     print('Request body: ${jsonEncode(data)}'); // Debugging request body
@@ -826,26 +926,33 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     try {
       final response = await _sendBookingRequest(data);
 
-      print('Response status: ${response.statusCode}'); // Debugging response status
+      print(
+        'Response status: ${response.statusCode}',
+      ); // Debugging response status
       print('Response body: ${response.body}'); // Debugging response body
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
-        print('Response success: ${responseBody['message']}'); // Debugging success message
+        print(
+          'Response success: ${responseBody['message']}',
+        ); // Debugging success message
 
         if (responseBody['message'] == 'Booking created successfully') {
           final upiUri = responseBody['upi']?['uri'];
           final upiAmount = responseBody['upi']?['am']?.toString();
-          if (_paymentMode == 'Online' && upiUri is String && upiUri.trim().isNotEmpty) {
+          if (_paymentMode == 'Online' &&
+              upiUri is String &&
+              upiUri.trim().isNotEmpty) {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => UpiPaymentQrPage(
-                  title: 'UPI Payment',
-                  upiUri: upiUri.trim(),
-                  amount: upiAmount,
-                  vendorName: _vendor?.vendorName ?? '',
-                ),
+                builder:
+                    (_) => UpiPaymentQrPage(
+                      title: 'UPI Payment',
+                      upiUri: upiUri.trim(),
+                      amount: upiAmount,
+                      vendorName: _vendor?.vendorName ?? '',
+                    ),
               ),
             );
           }
@@ -879,6 +986,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       });
     }
   }
+
   /// Sends booking request - uses JSON when no images, multipart when vehicle images are present.
   /// Uses machinecreatebooking for all booking flows. Vehicle images are compressed before add.
   Future<http.Response> _sendBookingRequest(Map<String, dynamic> data) async {
@@ -899,12 +1007,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       request.fields[entry.key] = entry.value?.toString() ?? '';
     }
     for (int i = 0; i < _vehicleImages.length; i++) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'vehicleImages',
-        _vehicleImages[i].path,
-        filename: 'vehicle_$i.jpg',
-        contentType: MediaType('image', 'jpeg'),
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'vehicleImages',
+          _vehicleImages[i].path,
+          filename: 'vehicle_$i.jpg',
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
     }
     var streamedResponse = await request.send();
     return http.Response.fromStream(streamedResponse);
@@ -913,7 +1023,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   // Function to display error message
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message, style: GoogleFonts.poppins(color: Colors.red))),
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins(color: Colors.red)),
+      ),
     );
     print('Error displayed: $message');
   }
@@ -953,7 +1065,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     if (available <= 0) {
-      _showError('No space available for $vehicleType. Please try another vehicle type or check back later.');
+      _showError(
+        'No space available for $vehicleType. Please try another vehicle type or check back later.',
+      );
       return;
     }
 
@@ -963,13 +1077,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       return;
     }
 
-    if (_selectedOption == 'Subscription' && subscriptionDateTimeController.text.isEmpty) {
+    if (_selectedOption == 'Subscription' &&
+        subscriptionDateTimeController.text.isEmpty) {
       _showError('Please select a parking date and time for the subscription');
       return;
     }
 
     if (_selectedOption == 'Schedule' && dateeTimeController.text.isEmpty) {
-      _showError('Please select a parking date and time for the scheduled booking');
+      _showError(
+        'Please select a parking date and time for the scheduled booking',
+      );
       return;
     }
 
@@ -978,7 +1095,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     });
 
     final url = Uri.parse('${ApiConfig.baseUrl}vendor/vendorcreatebooking');
-    String status = 'PARKED'; // Set status as PARKED for book and print (vehicle is currently parked)
+    String status =
+        'PARKED'; // Set status as PARKED for book and print (vehicle is currently parked)
 
     DateTime now = DateTime.now();
     String approvedDate = '';
@@ -992,12 +1110,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       amount = _selectedAmountForBooking(vehicleType);
 
       try {
-        DateTime subscriptionDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(subscriptionDateTimeController.text);
+        DateTime subscriptionDateTime = DateFormat(
+          "dd-MM-yyyy hh:mm a",
+        ).parse(subscriptionDateTimeController.text);
         approvedDate = DateFormat("dd-MM-yyyy").format(subscriptionDateTime);
         approvedTime = DateFormat("hh:mm a").format(subscriptionDateTime);
         parkingDate = approvedDate;
         parkingTime = approvedTime;
-        subscriptionEndDate = _computeSubscriptionEndDate(subscriptionDateTimeController.text);
+        subscriptionEndDate = _computeSubscriptionEndDate(
+          subscriptionDateTimeController.text,
+        );
       } catch (e) {
         _showError('Invalid subscription date and time format');
         setState(() {
@@ -1015,7 +1137,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         parkingTime = approvedTime;
       } else if (_selectedOption == 'Schedule') {
         try {
-          DateTime scheduleDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(dateeTimeController.text);
+          DateTime scheduleDateTime = DateFormat(
+            "dd-MM-yyyy hh:mm a",
+          ).parse(dateeTimeController.text);
           parkingDate = DateFormat("dd-MM-yyyy").format(scheduleDateTime);
           parkingTime = DateFormat("hh:mm a").format(scheduleDateTime);
         } catch (e) {
@@ -1029,7 +1153,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     double appliedValetAmount = 0.0;
-    if (_valetEnabled && _isValetSelected && vehicleType == 'Car') {
+    if (_valetEnabled && _isValetSelected && _isValetChargeApplicable()) {
       double baseAmount = double.tryParse(amount) ?? 0.0;
       double valetAmount = _getValetChargeAmount();
       if (valetAmount > 0) {
@@ -1069,8 +1193,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       'valetToken': _valetTokenController.text,
       'valetLocation': _valetLocationController.text,
       'valetDriverId': _selectedValetDriverId ?? '',
-      'isValet': _valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car'),
-      'valetCharge': (_valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car')) ? _getValetChargeAmount().toString() : "0",
+      'isValet': _valetEnabled && _isValetSelected && _isValetUIApplicable(),
+      'valetCharge':
+          (_valetEnabled && _isValetSelected && _isValetChargeApplicable())
+              ? _getValetChargeAmount().toString()
+              : "0",
     };
 
     try {
@@ -1082,14 +1209,18 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           _showError('Invalid server response');
           return;
         }
-        final Map<String, dynamic> responseBody =
-            Map<String, dynamic>.from(decoded);
+        final Map<String, dynamic> responseBody = Map<String, dynamic>.from(
+          decoded,
+        );
         if (responseBody['message'] == 'Booking created successfully') {
           final String bookingId = responseBody['bookingId']?.toString() ?? '';
           final String invoiceId =
               UniversalPrintHelper.extractInvoiceIdFromJson(responseBody);
           final String vendorName = _vendor?.vendorName ?? '';
-          final String receiptAmount = _amountFromResponse(responseBody, amount);
+          final String receiptAmount = _amountFromResponse(
+            responseBody,
+            amount,
+          );
 
           await _printTicket(
             vendorName: vendorName,
@@ -1104,29 +1235,35 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             mobileNumber: mobileController.text,
             includeDuration: false,
             receiptSts: stsSnapshot,
-            valetChargeAmount: appliedValetAmount > 0 ? appliedValetAmount : null,
+            valetChargeAmount:
+                appliedValetAmount > 0 ? appliedValetAmount : null,
           );
 
           final upiUri = responseBody['upi']?['uri'];
           final upiAmount = responseBody['upi']?['am']?.toString();
-          if (_paymentMode == 'Online' && upiUri is String && upiUri.trim().isNotEmpty) {
+          if (_paymentMode == 'Online' &&
+              upiUri is String &&
+              upiUri.trim().isNotEmpty) {
             if (!mounted) return;
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => UpiPaymentQrPage(
-                  title: 'UPI Payment',
-                  upiUri: upiUri.trim(),
-                  amount: upiAmount,
-                  vendorName: vendorName,
-                ),
+                builder:
+                    (_) => UpiPaymentQrPage(
+                      title: 'UPI Payment',
+                      upiUri: upiUri.trim(),
+                      amount: upiAmount,
+                      vendorName: vendorName,
+                    ),
               ),
             );
           }
 
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Parking successfully registered and printed!')),
+            const SnackBar(
+              content: Text('Parking successfully registered and printed!'),
+            ),
           );
 
           _resetFields();
@@ -1169,15 +1306,23 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
   /// Charge ID for entry/print amount by vehicle: Car=A, Bike=E, Others=I (per getchargesdata API).
   String _amountByChargeIdForVehicle(String vehicleType) {
-    final String chargeId = vehicleType.toUpperCase().contains('CAR')
-        ? 'A'
-        : vehicleType.toUpperCase().contains('BIKE')
+    final String chargeId =
+        vehicleType.toUpperCase().contains('CAR')
+            ? 'A'
+            : vehicleType.toUpperCase().contains('BIKE')
             ? 'E'
             : 'I';
     try {
       final charge = charges.firstWhere(
         (c) => c.chargeid.toUpperCase() == chargeId,
-        orElse: () => ParkingCharge(category: vehicleType, type: '', amount: '0', id: '', chargeid: ''),
+        orElse:
+            () => ParkingCharge(
+              category: vehicleType,
+              type: '',
+              amount: '0',
+              id: '',
+              chargeid: '',
+            ),
       );
       return charge.amount;
     } catch (_) {
@@ -1186,17 +1331,24 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   }
 
   /// Extracts amount from vendor create-booking API response (booking or top-level).
-  String _amountFromResponse(Map<String, dynamic> responseBody, String fallbackAmount) {
+  String _amountFromResponse(
+    Map<String, dynamic> responseBody,
+    String fallbackAmount,
+  ) {
     final booking = responseBody['booking'];
     if (booking != null && booking is Map<String, dynamic>) {
-      final fromBooking = booking['totalamout'] ?? booking['totalAmount'] ?? booking['amount'];
+      final fromBooking =
+          booking['totalamout'] ?? booking['totalAmount'] ?? booking['amount'];
       if (fromBooking != null) {
         final s = fromBooking.toString().trim();
         if (s.isNotEmpty && s != '0' && s != '0.0' && s != '0.00') return s;
       }
     }
-    final fromRoot = responseBody['totalamout'] ?? responseBody['totalAmount'] ??
-        responseBody['amount'] ?? responseBody['recievableamount'];
+    final fromRoot =
+        responseBody['totalamout'] ??
+        responseBody['totalAmount'] ??
+        responseBody['amount'] ??
+        responseBody['recievableamount'];
     if (fromRoot != null) {
       final s = fromRoot.toString().trim();
       if (s.isNotEmpty && s != '0' && s != '0.0' && s != '0.00') return s;
@@ -1234,7 +1386,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     return false;
   }
 
-  List<Map<String, dynamic>> _getHourlySlabEntriesForVehicle(String vehicleType) {
+  List<Map<String, dynamic>> _getHourlySlabEntriesForVehicle(
+    String vehicleType,
+  ) {
     final slabRe = RegExp(
       r'^0\s*(?:to|-)\s*(\d+)\s*(?:hour|hours|hr|hrs)\b',
       caseSensitive: false,
@@ -1275,7 +1429,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
               _categoryMatchesVehicleType(c.category, vehicleType) &&
               c.type.toLowerCase().contains('additional'),
         );
-        additionalPerHourRate = double.tryParse(anyAdditional.amount.toString().trim());
+        additionalPerHourRate = double.tryParse(
+          anyAdditional.amount.toString().trim(),
+        );
       } catch (_) {}
     }
 
@@ -1283,7 +1439,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     return _cleanAmountForReceipt(additionalPerHourRate.toString());
   }
 
-  String? _getChargeAmountByTypePattern(String vehicleType, RegExp typePattern) {
+  String? _getChargeAmountByTypePattern(
+    String vehicleType,
+    RegExp typePattern,
+  ) {
     try {
       final match = charges.firstWhere(
         (c) =>
@@ -1312,7 +1471,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       r'(?:hour|hours|hr|hrs)\b.*\b' + hours.toString() + r'\b',
       caseSensitive: false,
     );
-    final exclude = RegExp(r'^(?:0\s*(?:to|-)\s*\d+)|additional', caseSensitive: false);
+    final exclude = RegExp(
+      r'^(?:0\s*(?:to|-)\s*\d+)|additional',
+      caseSensitive: false,
+    );
 
     try {
       final match = charges.firstWhere((c) {
@@ -1328,15 +1490,27 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   }
 
   bool _isWeeklySubscriptionSelected() {
-    return (_selectedOption == 'Subscription') && (dropdownValue == "Weekly Subscription");
+    return (_selectedOption == 'Subscription') &&
+        (dropdownValue == "Weekly Subscription");
+  }
+
+  bool _isValetUIApplicable() {
+    return _currentVehicleTypeForPricing() == 'Car' &&
+        _selectedOption == 'Instant';
+  }
+
+  bool _isValetChargeApplicable() {
+    return _isValetUIApplicable() && _selectedPass == null;
   }
 
   bool _is15DaySubscriptionSelected() {
-    return (_selectedOption == 'Subscription') && (dropdownValue == "15 Days Subscription");
+    return (_selectedOption == 'Subscription') &&
+        (dropdownValue == "15 Days Subscription");
   }
 
   bool _isMonthlySubscriptionSelected() {
-    return (_selectedOption == 'Subscription') && (dropdownValue == "Monthly Subscription");
+    return (_selectedOption == 'Subscription') &&
+        (dropdownValue == "Monthly Subscription");
   }
 
   /// Single source of truth for request `amount` across all actions.
@@ -1358,13 +1532,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         RegExp(r'^monthly$|monthly', caseSensitive: false),
       );
 
-      final picked = _isWeeklySubscriptionSelected()
-          ? weekly
-          : _is15DaySubscriptionSelected()
+      final picked =
+          _isWeeklySubscriptionSelected()
+              ? weekly
+              : _is15DaySubscriptionSelected()
               ? day15
               : _isMonthlySubscriptionSelected()
-                  ? monthly
-                  : (monthly ?? day15 ?? weekly);
+              ? monthly
+              : (monthly ?? day15 ?? weekly);
       return (picked == null || picked.trim().isEmpty) ? '0' : picked;
     }
 
@@ -1372,7 +1547,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       if (_selectedPass == 24) {
         // 24h pass uses the Full Day charge from the charges list.
         final fullDayAmt = _getFullDayAmountForVehicle(vehicleType);
-        if (fullDayAmt != null && fullDayAmt.trim().isNotEmpty && fullDayAmt != '0') return fullDayAmt;
+        if (fullDayAmt != null &&
+            fullDayAmt.trim().isNotEmpty &&
+            fullDayAmt != '0')
+          return fullDayAmt;
       }
       final passAmt = _getPassAmountForVehicle(vehicleType, _selectedPass!);
       if (passAmt != null && passAmt.trim().isNotEmpty) return passAmt;
@@ -1406,13 +1584,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     final uri = _buildUpiQrUri();
     if (uri == null) return const SizedBox.shrink();
     final carType = CartypeController.text.trim();
-    String vehicleType = carType.toLowerCase().contains('car')
-        ? 'Car'
-        : carType.toLowerCase().contains('bike')
+    String vehicleType =
+        carType.toLowerCase().contains('car')
+            ? 'Car'
+            : carType.toLowerCase().contains('bike')
             ? 'Bike'
             : carType.isNotEmpty
-                ? 'Others'
-                : 'Car';
+            ? 'Others'
+            : 'Car';
     final amount = _selectedAmountForBooking(vehicleType);
     return Column(
       children: [
@@ -1440,7 +1619,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     (_vendorName ?? '').trim(),
-                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.black87),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               if (amount.isNotEmpty && amount != '0')
@@ -1510,7 +1692,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   /// Returns formatted `dd-MM-yyyy hh:mm a`.
   String _computeSubscriptionEndDate(String subscriptionStartText) {
     final start = DateFormat("dd-MM-yyyy hh:mm a").parse(subscriptionStartText);
-    final int days = _isWeeklySubscriptionSelected() ? 7 : _is15DaySubscriptionSelected() ? 15 : 30;
+    final int days =
+        _isWeeklySubscriptionSelected()
+            ? 7
+            : _is15DaySubscriptionSelected()
+            ? 15
+            : 30;
     final end = start.add(Duration(days: days));
     return DateFormat("dd-MM-yyyy hh:mm a").format(end);
   }
@@ -1522,7 +1709,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     final slabEntries = _getHourlySlabEntriesForVehicle(vehicleType);
-    final additionalPerHour = _getAdditionalPerHourAmountForVehicle(vehicleType);
+    final additionalPerHour = _getAdditionalPerHourAmountForVehicle(
+      vehicleType,
+    );
 
     Map<String, dynamic>? chosenSlab;
     if (slabEntries.isNotEmpty) {
@@ -1533,10 +1722,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       );
     }
 
-    final slabText = chosenSlab == null
-        ? null
-        : '0-${chosenSlab['endHour']} : ${money(chosenSlab['amount']?.toString())}';
-    final addText = additionalPerHour == null ? null : '${money(additionalPerHour)}+';
+    final slabText =
+        chosenSlab == null
+            ? null
+            : '0-${chosenSlab['endHour']} : ${money(chosenSlab['amount']?.toString())}';
+    final addText =
+        additionalPerHour == null ? null : '${money(additionalPerHour)}+';
 
     if (slabText != null && addText != null) return '$slabText  |  $addText';
     if (slabText != null) return slabText;
@@ -1561,15 +1752,33 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     final fullDay = _getFullDayAmountForVehicle(vehicleType);
 
     final bool showInstantDetails = _selectedOption == 'Instant';
-    final slabEntries = showInstantDetails ? _getHourlySlabEntriesForVehicle(vehicleType) : const <Map<String, dynamic>>[];
-    final additionalPerHour = showInstantDetails ? _getAdditionalPerHourAmountForVehicle(vehicleType) : null;
-    final pass12 = showInstantDetails ? _getPassAmountForVehicle(vehicleType, 12) : null;
-    final pass24 = showInstantDetails ? _getPassAmountForVehicle(vehicleType, 24) : null;
-    final pass48 = showInstantDetails ? _getPassAmountForVehicle(vehicleType, 48) : null;
-    final pass72 = showInstantDetails ? _getPassAmountForVehicle(vehicleType, 72) : null;
+    final slabEntries =
+        showInstantDetails
+            ? _getHourlySlabEntriesForVehicle(vehicleType)
+            : const <Map<String, dynamic>>[];
+    final additionalPerHour =
+        showInstantDetails
+            ? _getAdditionalPerHourAmountForVehicle(vehicleType)
+            : null;
+    final pass12 =
+        showInstantDetails ? _getPassAmountForVehicle(vehicleType, 12) : null;
+    final pass24 =
+        showInstantDetails ? _getPassAmountForVehicle(vehicleType, 24) : null;
+    final pass48 =
+        showInstantDetails ? _getPassAmountForVehicle(vehicleType, 48) : null;
+    final pass72 =
+        showInstantDetails ? _getPassAmountForVehicle(vehicleType, 72) : null;
 
-    final bool hasAnything = (showInstantDetails && (slabEntries.isNotEmpty || additionalPerHour != null || pass12 != null || pass24 != null || pass48 != null || pass72 != null)) ||
-        ((_selectedOption == 'Subscription') && (weekly != null || day15 != null || monthly != null)) ||
+    final bool hasAnything =
+        (showInstantDetails &&
+            (slabEntries.isNotEmpty ||
+                additionalPerHour != null ||
+                pass12 != null ||
+                pass24 != null ||
+                pass48 != null ||
+                pass72 != null)) ||
+        ((_selectedOption == 'Subscription') &&
+            (weekly != null || day15 != null || monthly != null)) ||
         weekly != null ||
         day15 != null ||
         monthly != null;
@@ -1599,10 +1808,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           orElse: () => slabEntries.first,
         );
       }
-      final slabText = chosenSlab == null
-          ? null
-          : '0-${chosenSlab['endHour']} : ${money(chosenSlab['amount']?.toString())}';
-      final addText = additionalPerHour == null ? null : '${money(additionalPerHour)}+';
+      final slabText =
+          chosenSlab == null
+              ? null
+              : '0-${chosenSlab['endHour']} : ${money(chosenSlab['amount']?.toString())}';
+      final addText =
+          additionalPerHour == null ? null : '${money(additionalPerHour)}+';
 
       if (slabText != null && addText != null) {
         compactText = '$slabText  |  $addText';
@@ -1614,9 +1825,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
       // Requirement: even in Instant, show Monthly amount in this same place.
       if (monthly != null) {
-        compactText = (compactText == null || compactText.trim().isEmpty)
-            ? 'Monthly : ${money(monthly)}'
-            : '$compactText   Monthly : ${money(monthly)}';
+        compactText =
+            (compactText == null || compactText.trim().isEmpty)
+                ? 'Monthly : ${money(monthly)}'
+                : '$compactText   Monthly : ${money(monthly)}';
       }
     } else if (_selectedOption == 'Subscription') {
       if (dropdownValue == "Weekly Subscription" && weekly != null) {
@@ -1626,20 +1838,19 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       } else if (dropdownValue == "Monthly Subscription" && monthly != null) {
         compactText = 'Monthly : ${money(monthly)}';
       } else if (weekly != null || day15 != null || monthly != null) {
-        compactText = 'Weekly : ${money(weekly)}   15 Days : ${money(day15)}   Monthly : ${money(monthly)}';
+        compactText =
+            'Weekly : ${money(weekly)}   15 Days : ${money(day15)}   Monthly : ${money(monthly)}';
       }
     }
 
-    if (compactText == null || compactText.trim().isEmpty) return const SizedBox.shrink();
+    if (compactText == null || compactText.trim().isEmpty)
+      return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          compactText,
-          style: boldStyle,
-        ),
+        child: Text(compactText, style: boldStyle),
       ),
     );
   }
@@ -1665,7 +1876,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     // Pick the "0 to X hours" slab with the largest hour window (the configured minimum period).
     {
-      final slabRe = RegExp(r'^0\s*(?:to|-)\s*(\d+)\s*(?:hour|hours|hr|hrs)\b', caseSensitive: false);
+      final slabRe = RegExp(
+        r'^0\s*(?:to|-)\s*(\d+)\s*(?:hour|hours|hr|hrs)\b',
+        caseSensitive: false,
+      );
       int? bestHours;
       for (final c in charges) {
         if (!categoryMatches(c.category)) continue;
@@ -1694,15 +1908,21 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     // Otherwise pick the largest "Additional X hour(s)" slab (matches the configured block).
     if (additionalCharge == null) {
-      final candidates = charges.where((c) {
-        return categoryMatches(c.category) &&
-            RegExp(r'additional\s*(\d+)\s*(?:hour|hours|hr|hrs)\b', caseSensitive: false).hasMatch(c.type);
-      }).toList();
+      final candidates =
+          charges.where((c) {
+            return categoryMatches(c.category) &&
+                RegExp(
+                  r'additional\s*(\d+)\s*(?:hour|hours|hr|hrs)\b',
+                  caseSensitive: false,
+                ).hasMatch(c.type);
+          }).toList();
 
       int? maxAdditionalHours;
       for (final c in candidates) {
-        final match =
-            RegExp(r'additional\s*(\d+)\s*(?:hour|hours|hr|hrs)\b', caseSensitive: false).firstMatch(c.type);
+        final match = RegExp(
+          r'additional\s*(\d+)\s*(?:hour|hours|hr|hrs)\b',
+          caseSensitive: false,
+        ).firstMatch(c.type);
         final blockHours = int.tryParse(match?.group(1) ?? '');
         if (blockHours == null || blockHours <= 0) continue;
         if (maxAdditionalHours == null || blockHours > maxAdditionalHours) {
@@ -1715,7 +1935,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         try {
           additionalCharge = charges.firstWhere(
             (c) =>
-                categoryMatches(c.category) && c.type.toLowerCase().contains('additional'),
+                categoryMatches(c.category) &&
+                c.type.toLowerCase().contains('additional'),
           );
         } catch (_) {}
       }
@@ -1723,10 +1944,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     final lines = <String>[];
     if (baseCharge != null) {
-      lines.add('${baseCharge.type.trim()} : Rs. ${_cleanAmountForReceipt(baseCharge.amount)}');
+      lines.add(
+        '${baseCharge.type.trim()} : Rs. ${_cleanAmountForReceipt(baseCharge.amount)}',
+      );
     }
     if (additionalCharge != null) {
-      lines.add('${additionalCharge.type.trim()} : Rs. ${_cleanAmountForReceipt(additionalCharge.amount)}');
+      lines.add(
+        '${additionalCharge.type.trim()} : Rs. ${_cleanAmountForReceipt(additionalCharge.amount)}',
+      );
     }
     return lines;
   }
@@ -1746,7 +1971,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     bool instantParkingReceipt = false,
   }) async {
     final displayId = UniversalPrintHelper.formatReceiptBookingId(invoiceId);
-    final vehicleLine = '${_vehicleTypeSymbol(vehicleType)} $vehicleType | $vehicleNumber';
+    final vehicleLine =
+        '${_vehicleTypeSymbol(vehicleType)} $vehicleType | $vehicleNumber';
     final hasName = personName.trim().isNotEmpty;
     final hasMobile = mobileNumber.trim().isNotEmpty;
 
@@ -1769,7 +1995,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     if (vehicleType.toLowerCase() == 'others') {
       vehicleLabel = "Vehicle Number";
     }
-    
+
     await SunmiPrinter.printText("$vehicleLabel : $vehicleNumber");
     await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.printText("Parked on : $parkingDate, $parkingTime");
@@ -1778,28 +2004,40 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     // Prefer `receiptSts` captured with the booking request so the slip matches what was
     // sent to the API (avoids hourly slabs if UI `_selectedPass` drifts after UPI, valet focus, etc.).
     final String snap = (receiptSts ?? '').trim().toLowerCase();
-    final int? passHoursFromSnap = snap.isNotEmpty ? _passHoursFromSts(snap) : null;
-    final bool isPass = passHoursFromSnap != null ||
-        (receiptSts == null && _selectedOption == 'Instant' && _selectedPass != null);
+    final int? passHoursFromSnap =
+        snap.isNotEmpty ? _passHoursFromSts(snap) : null;
+    final bool isPass =
+        passHoursFromSnap != null ||
+        (receiptSts == null &&
+            _selectedOption == 'Instant' &&
+            _selectedPass != null);
     final int? passHoursForReceipt =
-        passHoursFromSnap ?? ((receiptSts == null && _selectedOption == 'Instant') ? _selectedPass : null);
+        passHoursFromSnap ??
+        ((receiptSts == null && _selectedOption == 'Instant')
+            ? _selectedPass
+            : null);
 
-    final bool isSubscription = (snap == 'weekly' || snap == '15day' || snap == 'monthly') ||
+    final bool isSubscription =
+        (snap == 'weekly' || snap == '15day' || snap == 'monthly') ||
         (receiptSts == null && _selectedOption == 'Subscription');
     final cleanedAmt = _cleanAmountForReceipt(amount);
 
     if (isPass && passHoursForReceipt != null) {
       // Pass booking (12hr / 24hr / 48hr / 72hr)
       if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
-        await SunmiPrinter.printText('$passHoursForReceipt Hour Pass : Rs. $cleanedAmt');
+        await SunmiPrinter.printText(
+          '$passHoursForReceipt Hour Pass : Rs. $cleanedAmt',
+        );
         await SunmiPrinter.lineWrap(1);
       }
     } else if (isSubscription) {
       // Subscription: label from snapshot sts when available
       String label;
-      if (snap == 'weekly' || (receiptSts == null && _isWeeklySubscriptionSelected())) {
+      if (snap == 'weekly' ||
+          (receiptSts == null && _isWeeklySubscriptionSelected())) {
         label = 'Weekly';
-      } else if (snap == '15day' || (receiptSts == null && _is15DaySubscriptionSelected())) {
+      } else if (snap == '15day' ||
+          (receiptSts == null && _is15DaySubscriptionSelected())) {
         label = '15 Days';
       } else {
         label = 'Monthly';
@@ -1834,7 +2072,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     await SunmiPrinter.setAlignment(1);
-    await SunmiPrinter.printText('we are not responsible for any belongings inside and outside of the vehicle.');
+    await SunmiPrinter.printText(
+      'we are not responsible for any belongings inside and outside of the vehicle.',
+    );
     await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.printText('**************************');
     await SunmiPrinter.lineWrap(1); // Ensure "Powered by" starts on next line
@@ -1842,7 +2082,6 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     await SunmiPrinter.printText('Powered by ParkMyWheels');
     await SunmiPrinter.lineWrap(2);
     await SunmiPrinter.lineWrap(3);
- 
   }
 
   double _getValetChargeAmount() {
@@ -1850,21 +2089,22 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       print('FOUND VALET CHARGE FROM SETTINGS: $_valetChargeSetting');
       return _valetChargeSetting;
     }
-    
+
     try {
       print('--- ALL CONFIGURED CHARGES ---');
       for (var c in charges) {
         print('Category: ${c.category}, Type: ${c.type}, Amount: ${c.amount}');
       }
-      final valetCharge = charges.firstWhere(
-        (c) {
-          final cat = c.category.toLowerCase();
-          final type = c.type.toLowerCase();
-          return cat.contains('valet') || type.contains('valet') || 
-                 cat.contains('valte') || type.contains('valte') ||
-                 cat.contains('vale') || type.contains('vale');
-        }
-      );
+      final valetCharge = charges.firstWhere((c) {
+        final cat = c.category.toLowerCase();
+        final type = c.type.toLowerCase();
+        return cat.contains('valet') ||
+            type.contains('valet') ||
+            cat.contains('valte') ||
+            type.contains('valte') ||
+            cat.contains('vale') ||
+            type.contains('vale');
+      });
       print('FOUND VALET CHARGE IN CHARGES LIST: ${valetCharge.amount}');
       return double.tryParse(valetCharge.amount.toString()) ?? 0.0;
     } catch (_) {
@@ -1897,14 +2137,15 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     try {
       final String resolvedInvoiceId =
           await UniversalPrintHelper.resolveInvoiceIdForPrint(
-        invoiceId: invoiceId,
-        bookingId: bookingId,
-      );
+            invoiceId: invoiceId,
+            bookingId: bookingId,
+          );
       final String? printInvoiceId =
           resolvedInvoiceId.isNotEmpty ? resolvedInvoiceId : null;
 
-      final String printerType =
-          await UniversalPrintHelper.detectPrinterType(fast: true);
+      final String printerType = await UniversalPrintHelper.detectPrinterType(
+        fast: true,
+      );
 
       if (printerType == 'sunmi' ||
           printerType == 'sumi' ||
@@ -1999,7 +2240,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     if (available <= 0) {
-      _showError('No space available for $vehicleType. Please try another vehicle type or check back later.');
+      _showError(
+        'No space available for $vehicleType. Please try another vehicle type or check back later.',
+      );
       return;
     }
 
@@ -2009,13 +2252,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       return;
     }
 
-    if (_selectedOption == 'Subscription' && subscriptionDateTimeController.text.isEmpty) {
+    if (_selectedOption == 'Subscription' &&
+        subscriptionDateTimeController.text.isEmpty) {
       _showError('Please select a parking date and time for the subscription');
       return;
     }
 
     if (_selectedOption == 'Schedule' && dateeTimeController.text.isEmpty) {
-      _showError('Please select a parking date and time for the scheduled booking');
+      _showError(
+        'Please select a parking date and time for the scheduled booking',
+      );
       return;
     }
 
@@ -2024,13 +2270,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     });
 
     final url = Uri.parse('${ApiConfig.baseUrl}vendor/vendorcreatebooking');
-    String status = 'COMPLETED'; // Always set status as COMPLETED for print and exit
+    String status =
+        'COMPLETED'; // Always set status as COMPLETED for print and exit
 
     DateTime now = DateTime.now();
     // Get current date/time (device should be set to India timezone)
     String exitDate = DateFormat("dd-MM-yyyy").format(now);
     String exitTime = DateFormat("hh:mm a").format(now);
-    
+
     String approvedDate = '';
     String approvedTime = '';
     String parkingDate = '';
@@ -2042,12 +2289,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       amount = _selectedAmountForBooking(vehicleType);
 
       try {
-        DateTime subscriptionDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(subscriptionDateTimeController.text);
+        DateTime subscriptionDateTime = DateFormat(
+          "dd-MM-yyyy hh:mm a",
+        ).parse(subscriptionDateTimeController.text);
         approvedDate = DateFormat("dd-MM-yyyy").format(subscriptionDateTime);
         approvedTime = DateFormat("hh:mm a").format(subscriptionDateTime);
         parkingDate = approvedDate;
         parkingTime = approvedTime;
-        subscriptionEndDate = _computeSubscriptionEndDate(subscriptionDateTimeController.text);
+        subscriptionEndDate = _computeSubscriptionEndDate(
+          subscriptionDateTimeController.text,
+        );
       } catch (e) {
         _showError('Invalid subscription date and time format');
         setState(() {
@@ -2065,7 +2316,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         parkingTime = approvedTime;
       } else if (_selectedOption == 'Schedule') {
         try {
-          DateTime scheduleDateTime = DateFormat("dd-MM-yyyy hh:mm a").parse(dateeTimeController.text);
+          DateTime scheduleDateTime = DateFormat(
+            "dd-MM-yyyy hh:mm a",
+          ).parse(dateeTimeController.text);
           parkingDate = DateFormat("dd-MM-yyyy").format(scheduleDateTime);
           parkingTime = DateFormat("hh:mm a").format(scheduleDateTime);
         } catch (e) {
@@ -2079,7 +2332,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
 
     double appliedValetAmount = 0.0;
-    if (_valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car')) {
+    if (_valetEnabled && _isValetSelected && _isValetChargeApplicable()) {
       double valetAmount = _getValetChargeAmount();
       if (valetAmount > 0) {
         appliedValetAmount = valetAmount;
@@ -2120,8 +2373,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       'valetToken': _valetTokenController.text,
       'valetLocation': _valetLocationController.text,
       'valetDriverId': _selectedValetDriverId ?? '',
-      'isValet': _valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car'),
-      'valetCharge': (_valetEnabled && _isValetSelected && (vehicleType.toLowerCase() == 'car')) ? _getValetChargeAmount().toString() : "0",
+      'isValet': _valetEnabled && _isValetSelected && _isValetUIApplicable(),
+      'valetCharge':
+          (_valetEnabled && _isValetSelected && _isValetChargeApplicable())
+              ? _getValetChargeAmount().toString()
+              : "0",
     };
 
     try {
@@ -2133,14 +2389,18 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           _showError('Invalid server response');
           return;
         }
-        final Map<String, dynamic> responseBody =
-            Map<String, dynamic>.from(decoded);
+        final Map<String, dynamic> responseBody = Map<String, dynamic>.from(
+          decoded,
+        );
         if (responseBody['message'] == 'Booking created successfully') {
           final String bookingId = responseBody['bookingId']?.toString() ?? '';
           final String invoiceId =
               UniversalPrintHelper.extractInvoiceIdFromJson(responseBody);
           final String vendorName = _vendor?.vendorName ?? '';
-          final String receiptAmount = _amountFromResponse(responseBody, amount);
+          final String receiptAmount = _amountFromResponse(
+            responseBody,
+            amount,
+          );
           final bool instantReceipt =
               _selectedOption == 'Instant' &&
               (vehicleType == 'Car' || vehicleType == 'Bike') &&
@@ -2161,29 +2421,37 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             includeDuration: false,
             receiptSts: stsSnapshot,
             instantParkingReceipt: instantReceipt,
-            valetChargeAmount: appliedValetAmount > 0 ? appliedValetAmount : null,
+            valetChargeAmount:
+                appliedValetAmount > 0 ? appliedValetAmount : null,
           );
 
           final upiUri = responseBody['upi']?['uri'];
           final upiAmount = responseBody['upi']?['am']?.toString();
-          if (_paymentMode == 'Online' && upiUri is String && upiUri.trim().isNotEmpty) {
+          if (_paymentMode == 'Online' &&
+              upiUri is String &&
+              upiUri.trim().isNotEmpty) {
             if (!mounted) return;
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => UpiPaymentQrPage(
-                  title: 'UPI Payment',
-                  upiUri: upiUri.trim(),
-                  amount: upiAmount,
-                  vendorName: vendorName,
-                ),
+                builder:
+                    (_) => UpiPaymentQrPage(
+                      title: 'UPI Payment',
+                      upiUri: upiUri.trim(),
+                      amount: upiAmount,
+                      vendorName: vendorName,
+                    ),
               ),
             );
           }
 
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Parking successfully registered, printed, and marked as completed!')),
+            const SnackBar(
+              content: Text(
+                'Parking successfully registered, printed, and marked as completed!',
+              ),
+            ),
           );
 
           _resetFields();
@@ -2213,7 +2481,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     }
   }
 
-  bool showSubscriptionOptions = false; // Track whether to show subscription options
+  bool showSubscriptionOptions =
+      false; // Track whether to show subscription options
   @override
   void dispose() {
     // Cancel the timer when the widget is disposed to avoid memory leaks
@@ -2223,714 +2492,913 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<ParkingCharge> carEntries = charges.where((charge) => charge.category == 'Car').toList();
-    List<ParkingCharge> bikeentries = charges.where((charge) => charge.category == 'Bike').toList();
-    List<ParkingCharge> others = charges.where((charge) => charge.category == 'Others').toList();
+    List<ParkingCharge> carEntries =
+        charges.where((charge) => charge.category == 'Car').toList();
+    List<ParkingCharge> bikeentries =
+        charges.where((charge) => charge.category == 'Bike').toList();
+    List<ParkingCharge> others =
+        charges.where((charge) => charge.category == 'Others').toList();
 
-    return  isLoading
+    return isLoading
         ? const LoadingGif() // Show loading GIF before the Scaffold
         : WillPopScope(
-      onWillPop: () async {
-        Navigator.pop(context, _selectedIndex);
-        return false;
-      },
-      child: Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(60.0),
-        child: Container(
-          decoration: const BoxDecoration(
-
-          ),
-          child: AppBar(titleSpacing: 0,
-            backgroundColor: ColorUtils.secondarycolor(),
-            title:  Text(
-              'New Booking',
-              style: GoogleFonts.poppins(color: Colors.black),
-            ),
-            iconTheme: const IconThemeData(color: Colors.black),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context, _selectedIndex);
-              },
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => vSearchScreen(vendorid: widget.vendorid),
-                    ),
-                  );
-                },
-                icon: Icon(Icons.search, color: ColorUtils.primarycolor()),
-              ),
-              IconButton(
-                onPressed: () {
-                  // Use the `infoRow` widget somewhere in your UI
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5.0), // Circular border
-                        ),
-                        child: SingleChildScrollView( // Make the dialog content scrollable
-                          child: infoRow(
-                            context: context,
-                            carEntries: carEntries,
-                            bikeEntries: bikeentries,
-                            otherEntries: others,
-                            title: "Price Charts",
-                            value: "",
-                            icon: Icons.currency_rupee,
-                            iconCheck: true,
-                          ),
-                        ),
-                      );
+          onWillPop: () async {
+            Navigator.pop(context, _selectedIndex);
+            return false;
+          },
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(60.0),
+              child: Container(
+                decoration: const BoxDecoration(),
+                child: AppBar(
+                  titleSpacing: 0,
+                  backgroundColor: ColorUtils.secondarycolor(),
+                  title: Text(
+                    'New Booking',
+                    style: GoogleFonts.poppins(color: Colors.black),
+                  ),
+                  iconTheme: const IconThemeData(color: Colors.black),
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.pop(context, _selectedIndex);
                     },
-                  );
-                },
-                icon:  Icon(Icons.info_outline, color: ColorUtils.primarycolor(),), // Set the icon here
-
-              ),
-              const SizedBox(width: 15,),
-            ],
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              children: [
-                
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top Row: Vehicle Toggles and Valet Checkbox
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            _buildVehicleToggleItem(
-                              0, 
-                              Icons.directions_car, 
-                              "Car", 
-                              isDisabled: !(_enabledSettings['carEnabled'] ?? true)
-                            ),
-                            _buildVehicleToggleItem(
-                              1, 
-                              Icons.two_wheeler, 
-                              "Bike", 
-                              isDisabled: !(_enabledSettings['bikeEnabled'] ?? true)
-                            ),
-                            _buildVehicleToggleItem(
-                              2, 
-                              Icons.settings, 
-                              "Others", 
-                              isDisabled: !(_enabledSettings['othersEnabled'] ?? true)
-                            ),
-                          ],
-                        ),
-                        if (_currentVehicleTypeForPricing() == 'Car')
-                          Row(
-                            children: [
-                                Checkbox(
-                                value: _isValetSelected,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _isValetSelected = val ?? false;
-                                    _valetEnabled = _isValetSelected;
-                                  });
-                                  _updateValetGlobalState(_isValetSelected);
-                                },
-                                activeColor: ColorUtils.primarycolor(),
-                                visualDensity: VisualDensity.compact,
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    vSearchScreen(vendorid: widget.vendorid),
+                          ),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.search,
+                        color: ColorUtils.primarycolor(),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        // Use the `infoRow` widget somewhere in your UI
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  5.0,
+                                ), // Circular border
                               ),
-                              Text(
-                                "Valet",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                              child: SingleChildScrollView(
+                                // Make the dialog content scrollable
+                                child: infoRow(
+                                  context: context,
+                                  carEntries: carEntries,
+                                  bikeEntries: bikeentries,
+                                  otherEntries: others,
+                                  title: "Price Charts",
+                                  value: "",
+                                  icon: Icons.currency_rupee,
+                                  iconCheck: true,
                                 ),
                               ),
-                            ],
-                          ),
-                      ],
+                            );
+                          },
+                        );
+                      },
+                      icon: Icon(
+                        Icons.info_outline,
+                        color: ColorUtils.primarycolor(),
+                      ), // Set the icon here
                     ),
-                    const SizedBox(height: 10),
-                    // Input Fields Row
-                    Row(
-                      children: [
-                        if (_isValetSelected && _currentVehicleTypeForPricing() == 'Car')
-                          Expanded(
-                            flex: 2,
-                            child: _buildLabelAboveField(
-                              label: 'Valet Token',
-                              child: _buildSmallField(
-                                _valetTokenController, 
-                                _valetTokenFocusNode, 
-                                'Token',
-                                borderRadius: BorderRadius.circular(8),
-                                keyboardType: TextInputType.number,
-                                enabled: _isValetSelected,
-                              ),
-                            ),
-                          ),
-                        if (_isValetSelected && _currentVehicleTypeForPricing() == 'Car') const SizedBox(width: 5),
-                        Expanded(
-                          flex: 3,
-                          child: _buildLabelAboveField(
-                            label: 'Enter Vehicle No *',
-                            labelColor: Colors.grey,
-                            child: _buildSmallField(
-                              carController, 
-                              _carFocusNode, 
-                              'Vehicle No', 
-                              isRequired: true,
-                              autofocus: true, // Enable autofocus for new booking page
-                              borderRadius: BorderRadius.circular(8),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ),
-                        ),
-                        if (_isValetSelected && _currentVehicleTypeForPricing() == 'Car') const SizedBox(width: 5),
-                        if (_isValetSelected && _currentVehicleTypeForPricing() == 'Car')
-                          Expanded(
-                            flex: 3,
-                            child: _buildLabelAboveField(
-                              label: 'Parking Location',
-                              child: _buildSmallField(
-                                _valetLocationController, 
-                                _valetLocationFocusNode, 
-                                'Location',
-                                borderRadius: BorderRadius.circular(8),
-                                enabled: _isValetSelected,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    const SizedBox(width: 15),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-                Builder(
-                  builder: (context) {
-                    final vehicleTypeForPricing = _currentVehicleTypeForPricing();
-                    final weeklyAmtStr = _cleanAmountForReceipt(_getChargeAmountByTypePattern(vehicleTypeForPricing, RegExp(r"weekly", caseSensitive: false)) ?? "0");
-                    final day15AmtStr = _cleanAmountForReceipt(_getChargeAmountByTypePattern(vehicleTypeForPricing, RegExp(r"15.?days?", caseSensitive: false)) ?? "0");
-                    final monthlyAmtStr = _cleanAmountForReceipt(_getChargeAmountByTypePattern(vehicleTypeForPricing, RegExp(r"^monthly$|monthly", caseSensitive: false)) ?? "0");
-                    
-                    final isInstantDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Temporary'] ?? true);
-                    final isWeeklyDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Weekly'] ?? false);
-                    final is15DayDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}15Day'] ?? false);
-                    final isMonthlyDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Monthly'] ?? false);
-
-                    return Row(
-                      children: [
-                        _buildModeButton(
-                          "Instant\nParking",
-                          _selectedOption == 'Instant' && _selectedPass == null,
-                          () {
-                            setState(() {
-                              _selectedOption = 'Instant';
-                              isHourly = true;
-                              _selectedPass = null; // Always clear pass when standard Instant is chosen
-                              dateTimeController.text = _getFormattedCurrentDateTime();
-                            });
-                          },
-                          bottomText: _instantCompactPricingText(_currentVehicleTypeForPricing()) ?? '',
-                          isDisabled: isInstantDisabled,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildModeButton(
-                          "Weekly\nPass",
-                          _selectedOption == 'Subscription' && dropdownValue == "Weekly Subscription",
-                          () {
-                            setState(() {
-                              _selectedOption = 'Subscription';
-                              dropdownValue = "Weekly Subscription";
-                              _selectedPass = null;
-                              dateTimeController.clear();
-                              subscriptionDateTimeController.clear();
-                            });
-                          },
-                          bottomText: '₹$weeklyAmtStr',
-                          isDisabled: isWeeklyDisabled,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildModeButton(
-                          "15 Days\nPass",
-                          _selectedOption == 'Subscription' && dropdownValue == "15 Days Subscription",
-                          () {
-                            setState(() {
-                              _selectedOption = 'Subscription';
-                              dropdownValue = "15 Days Subscription";
-                              _selectedPass = null;
-                              dateTimeController.clear();
-                              subscriptionDateTimeController.clear();
-                            });
-                          },
-                          bottomText: '₹$day15AmtStr',
-                          isDisabled: is15DayDisabled,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildModeButton(
-                          "Monthly\nSubscription",
-                          _selectedOption == 'Subscription' && dropdownValue == "Monthly Subscription",
-                          () {
-                            setState(() {
-                              _selectedOption = 'Subscription';
-                              dropdownValue = "Monthly Subscription";
-                              _selectedPass = null;
-                              dateTimeController.clear();
-                              subscriptionDateTimeController.clear();
-                            });
-                          },
-                          bottomText: '₹$monthlyAmtStr',
-                          isDisabled: isMonthlyDisabled,
-                        ),
-                      ],
-                    );
-                  }
-                ),
-                // Keep legacy panel available but hidden (amounts now live under each button).
-                Offstage(
-                  offstage: true,
-                  child: _buildPricingSummaryPanel(),
-                ),
-                const SizedBox(height: 15),
-                // Show amount on each pass button (12/24/48/72).
-                Builder(
-                  builder: (context) {
-                    final vehicleTypeForPricing = _currentVehicleTypeForPricing();
-                    final hr12AmtStr = _cleanAmountForReceipt(_getPassAmountForVehicle(vehicleTypeForPricing, 12) ?? '0');
-                    final hr24AmtStr = _cleanAmountForReceipt(_getFullDayAmountForVehicle(vehicleTypeForPricing) ?? '0');
-                    final hr48AmtStr = _cleanAmountForReceipt(_getPassAmountForVehicle(vehicleTypeForPricing, 48) ?? '0');
-                    final hr72AmtStr = _cleanAmountForReceipt(_getPassAmountForVehicle(vehicleTypeForPricing, 72) ?? '0');
-                    
-                    final is12hDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}12h'] ?? false);
-                    final is24hDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}FullDay'] ?? false);
-                    final is48hDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}48h'] ?? false);
-                    final is72hDisabled = !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}72h'] ?? false);
-
-                    return Row(
-                      children: [
-                        _buildPassButton(
-                          12,
-                          _selectedPass == 12,
-                          () => _handlePassSelection(12),
-                          bottomText: '₹$hr12AmtStr',
-                          isDisabled: is12hDisabled,
-                        ),
-                        const SizedBox(width: 5),
-                        _buildPassButton(
-                          24,
-                          _selectedPass == 24,
-                          () => _handlePassSelection(24),
-                          bottomText: '₹$hr24AmtStr',
-                          isDisabled: is24hDisabled,
-                        ),
-                        const SizedBox(width: 5),
-                        _buildPassButton(
-                          48,
-                          _selectedPass == 48,
-                          () => _handlePassSelection(48),
-                          bottomText: '₹$hr48AmtStr',
-                          isDisabled: is48hDisabled,
-                        ),
-                        const SizedBox(width: 5),
-                        _buildPassButton(
-                          72,
-                          _selectedPass == 72,
-                          () => _handlePassSelection(72),
-                          bottomText: '₹$hr72AmtStr',
-                          isDisabled: is72hDisabled,
-                        ),
-                      ],
-                    );
-                  }
-                ),
-                const SizedBox(height: 15),
-                // Compact Date/Time Picker with grey background for Instant, white for others
-                _selectedOption == 'Instant' 
-                ? greyfield(
-                  labelColor: customTeal,
-                  selectedColor: customTeal,
-                  controller: dateTimeController,
-                  focusNode: _dateTimeFocusNode,
-                  keyboard: TextInputType.text,
-                  obscure: false,
-                  textInputAction: TextInputAction.done,
-                  inputFormatter: const [],
-                  label: 'Select Parking Date & Time',
-                  hint: 'Select Parking Date & Time',
-                  prefixIcon: Icon(Icons.calendar_today, color: customTeal, size: 14),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.keyboard_arrow_down, color: customTeal, size: 20),
-                  ),
-                  readOnly: true,
-                  onTap: null, // Not editable for Instant
-                )
-                : CusTextField(
-                  labelColor: customTeal,
-                  selectedColor: customTeal,
-                  controller: dateTimeController,
-                  focusNode: _dateTimeFocusNode,
-                  keyboard: TextInputType.text,
-                  obscure: false,
-                  textInputAction: TextInputAction.done,
-                  inputFormatter: const [],
-                  label: 'Select Parking Date & Time',
-                  hint: 'Select Parking Date & Time',
-                  prefixIcon: Icon(Icons.calendar_today, color: customTeal, size: 14),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.keyboard_arrow_down, color: customTeal, size: 20),
-                  ),
-                  readOnly: true,
-                  onTap: () async {
-                    _showDateTimePicker();
-                  },
-                ),
-
-
-                const SizedBox(height: 10),
-                  Row(
+              ),
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Divider(
-                          color: Colors.grey.shade300,
-                          thickness: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: Checkbox(
-                          value: _showOptionalInfo,
-                          activeColor: ColorUtils.primarycolor(),
-                          onChanged: (val) => setState(() => _showOptionalInfo = val!),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => setState(() => _showOptionalInfo = !_showOptionalInfo),
-                        child: Text(
-                          "Optional Information",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Divider(
-                          color: Colors.grey.shade300,
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-
-
-                if (_showOptionalInfo) ...[
-                  const SizedBox(height: 15),
-                  CusTextField(
-                    labelColor: customTeal,
-                    selectedColor: customTeal,
-                    controller: checkout,
-                    focusNode: _checkout,
-                    keyboard: TextInputType.text,
-                    obscure: false,
-                    textInputAction: TextInputAction.next,
-                    inputFormatter: const [],
-                    label: 'Tentative checkout date & time',
-                    hint: 'Tentative checkout date & time',
-                    prefixIcon: Icon(Icons.timer, color: customTeal, size: 14),
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Icon(Icons.keyboard_arrow_down, color: customTeal, size: 20),
-                    ),
-                    readOnly: true,
-                    onTap: _tenditivecheckout,
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: _buildLabelAboveField(
-                          label: 'Car Type',
-                          child: _buildSmallField(CartypeController, _CartypeFocusNode, 'Model'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildLabelAboveField(
-                          label: 'Person name',
-                          child: _buildSmallField(nameController, _nameFocusNode, 'Name'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildLabelAboveField(
-                          label: 'Mobile number',
-                          child: _buildSmallField(mobileController, _mobileFocusNode, 'Mobile'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  if (_valetEnabled)
-                    _buildLabelAboveField(
-                      label: 'Select Valet Driver',
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return DropdownMenu<String>(
-                            key: ValueKey(_valetDropdownKey),
-                            initialSelection: _selectedValetDriverId,
-                            width: constraints.maxWidth,
-                            menuHeight: 250,
-                            hintText: 'Select Driver',
-                            textStyle: GoogleFonts.poppins(fontSize: 12),
-                            inputDecorationTheme: InputDecorationTheme(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: ColorUtils.primarycolor(), width: 1),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: ColorUtils.primarycolor(), width: 1),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: ColorUtils.primarycolor(), width: 1.5),
-                              ),
-                            ),
-                            dropdownMenuEntries: _valetDrivers.map((driver) {
-                              final firstName = driver['firstName']?.toString() ?? '';
-                              final lastName = driver['lastName']?.toString() ?? '';
-                              final fullName = '$firstName $lastName'.trim();
-                              
-                              return DropdownMenuEntry<String>(
-                                value: driver['_id']?.toString() ?? driver['id']?.toString() ?? '',
-                                label: fullName.isNotEmpty ? fullName : 'Unknown Driver',
-                                style: MenuItemButton.styleFrom(
-                                  textStyle: GoogleFonts.poppins(fontSize: 12),
-                                ),
-                              );
-                            }).toList(),
-                            onSelected: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _selectedValetDriverId = value;
-                                });
-                              }
-                            },
-                          );
-                        }
-                      ),
-                    ),
-                  const SizedBox(height: 15),
-                  // Vehicle images - capture from camera (only for Instant parking, when Vehicle Upload is ON)
-                  if (_selectedOption == 'Instant' && _vehicleUploadEnabled) ...[
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Add Vehicle Image",
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: _captureVehicleImage,
-                      child: CustomPaint(
-                        painter: DashedBorderPainter(color: Colors.grey.shade400),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          width: double.infinity,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Top Row: Vehicle Toggles and Valet Checkbox
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              SvgPicture.asset(
-                                'assets/svg/upload.svg',
-                                height: 60,
-                                fit: BoxFit.contain,
-                              ),
-                              const SizedBox(width: 20),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
+                              Row(
                                 children: [
-                                  Text(
-                                    "Tap to capture",
-                                    style: GoogleFonts.poppins(
-                                      color: ColorUtils.primarycolor(),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
+                                  _buildVehicleToggleItem(
+                                    0,
+                                    Icons.directions_car,
+                                    "Car",
+                                    isDisabled:
+                                        !(_enabledSettings['carEnabled'] ??
+                                            true),
                                   ),
-                                  Text(
-                                    "JPG, PNG up to 5MB",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                    ),
+                                  _buildVehicleToggleItem(
+                                    1,
+                                    Icons.two_wheeler,
+                                    "Bike",
+                                    isDisabled:
+                                        !(_enabledSettings['bikeEnabled'] ??
+                                            true),
+                                  ),
+                                  _buildVehicleToggleItem(
+                                    2,
+                                    Icons.settings,
+                                    "Others",
+                                    isDisabled:
+                                        !(_enabledSettings['othersEnabled'] ??
+                                            true),
                                   ),
                                 ],
                               ),
+                              if (_isValetUIApplicable())
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: _isValetSelected,
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _isValetSelected = val ?? false;
+                                          _valetEnabled = _isValetSelected;
+                                        });
+                                        _updateValetGlobalState(
+                                          _isValetSelected,
+                                        );
+                                      },
+                                      activeColor: ColorUtils.primarycolor(),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    Text(
+                                      "Valet",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                             ],
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-
-                  if (_vehicleImages.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 90,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _vehicleImages.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    _vehicleImages[index],
-                                    width: 80,
-                                    height: 80,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  top: -4,
-                                  right: -4,
-                                  child: GestureDetector(
-                                    onTap: () => _removeVehicleImage(index),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.red,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.close, size: 16, color: Colors.white),
+                          const SizedBox(height: 10),
+                          // Input Fields Row
+                          Row(
+                            children: [
+                              if (_isValetSelected && _isValetUIApplicable())
+                                Expanded(
+                                  flex: 2,
+                                  child: _buildLabelAboveField(
+                                    label: 'Valet Token',
+                                    child: _buildSmallField(
+                                      _valetTokenController,
+                                      _valetTokenFocusNode,
+                                      'Token',
+                                      borderRadius: BorderRadius.circular(8),
+                                      keyboardType: TextInputType.number,
+                                      enabled: _isValetSelected,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              if (_isValetSelected && _isValetUIApplicable())
+                                const SizedBox(width: 5),
+                              Expanded(
+                                flex: 3,
+                                child: _buildLabelAboveField(
+                                  label: 'Enter Vehicle No *',
+                                  labelColor: Colors.grey,
+                                  child: _buildSmallField(
+                                    carController,
+                                    _carFocusNode,
+                                    'Vehicle No',
+                                    isRequired: true,
+                                    autofocus:
+                                        true, // Enable autofocus for new booking page
+                                    borderRadius: BorderRadius.circular(8),
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ),
+                              ),
+                              if (_isValetSelected && _isValetUIApplicable())
+                                const SizedBox(width: 5),
+                              if (_isValetSelected && _isValetUIApplicable())
+                                Expanded(
+                                  flex: 3,
+                                  child: _buildLabelAboveField(
+                                    label: 'Parking Location',
+                                    child: _buildSmallField(
+                                      _valetLocationController,
+                                      _valetLocationFocusNode,
+                                      'Location',
+                                      borderRadius: BorderRadius.circular(8),
+                                      enabled: _isValetSelected,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+                      Builder(
+                        builder: (context) {
+                          final vehicleTypeForPricing =
+                              _currentVehicleTypeForPricing();
+                          final weeklyAmtStr = _cleanAmountForReceipt(
+                            _getChargeAmountByTypePattern(
+                                  vehicleTypeForPricing,
+                                  RegExp(r"weekly", caseSensitive: false),
+                                ) ??
+                                "0",
+                          );
+                          final day15AmtStr = _cleanAmountForReceipt(
+                            _getChargeAmountByTypePattern(
+                                  vehicleTypeForPricing,
+                                  RegExp(r"15.?days?", caseSensitive: false),
+                                ) ??
+                                "0",
+                          );
+                          final monthlyAmtStr = _cleanAmountForReceipt(
+                            _getChargeAmountByTypePattern(
+                                  vehicleTypeForPricing,
+                                  RegExp(
+                                    r"^monthly$|monthly",
+                                    caseSensitive: false,
+                                  ),
+                                ) ??
+                                "0",
+                          );
+
+                          final isInstantDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Temporary'] ??
+                                  true);
+                          final isWeeklyDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Weekly'] ??
+                                  false);
+                          final is15DayDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}15Day'] ??
+                                  false);
+                          final isMonthlyDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}Monthly'] ??
+                                  false);
+
+                          return Row(
+                            children: [
+                              _buildModeButton(
+                                "Instant\nParking",
+                                _selectedOption == 'Instant' &&
+                                    _selectedPass == null,
+                                () {
+                                  setState(() {
+                                    _selectedOption = 'Instant';
+                                    isHourly = true;
+                                    _selectedPass =
+                                        null; // Always clear pass when standard Instant is chosen
+                                    dateTimeController.text =
+                                        _getFormattedCurrentDateTime();
+                                  });
+                                },
+                                bottomText:
+                                    _instantCompactPricingText(
+                                      _currentVehicleTypeForPricing(),
+                                    ) ??
+                                    '',
+                                isDisabled: isInstantDisabled,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildModeButton(
+                                "Weekly\nPass",
+                                _selectedOption == 'Subscription' &&
+                                    dropdownValue == "Weekly Subscription",
+                                () {
+                                  setState(() {
+                                    _selectedOption = 'Subscription';
+                                    dropdownValue = "Weekly Subscription";
+                                    _selectedPass = null;
+                                    dateTimeController.clear();
+                                    subscriptionDateTimeController.clear();
+                                  });
+                                },
+                                bottomText: '₹$weeklyAmtStr',
+                                isDisabled: isWeeklyDisabled,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildModeButton(
+                                "15 Days\nPass",
+                                _selectedOption == 'Subscription' &&
+                                    dropdownValue == "15 Days Subscription",
+                                () {
+                                  setState(() {
+                                    _selectedOption = 'Subscription';
+                                    dropdownValue = "15 Days Subscription";
+                                    _selectedPass = null;
+                                    dateTimeController.clear();
+                                    subscriptionDateTimeController.clear();
+                                  });
+                                },
+                                bottomText: '₹$day15AmtStr',
+                                isDisabled: is15DayDisabled,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildModeButton(
+                                "Monthly\nSubscription",
+                                _selectedOption == 'Subscription' &&
+                                    dropdownValue == "Monthly Subscription",
+                                () {
+                                  setState(() {
+                                    _selectedOption = 'Subscription';
+                                    dropdownValue = "Monthly Subscription";
+                                    _selectedPass = null;
+                                    dateTimeController.clear();
+                                    subscriptionDateTimeController.clear();
+                                  });
+                                },
+                                bottomText: '₹$monthlyAmtStr',
+                                isDisabled: isMonthlyDisabled,
+                              ),
+                            ],
                           );
                         },
                       ),
-                    ),
-                    // const SizedBox(height: 10),
-                  ],
-                ],
+                      // Keep legacy panel available but hidden (amounts now live under each button).
+                      Offstage(
+                        offstage: true,
+                        child: _buildPricingSummaryPanel(),
+                      ),
+                      const SizedBox(height: 15),
+                      // Show amount on each pass button (12/24/48/72).
+                      Builder(
+                        builder: (context) {
+                          final vehicleTypeForPricing =
+                              _currentVehicleTypeForPricing();
+                          final hr12AmtStr = _cleanAmountForReceipt(
+                            _getPassAmountForVehicle(
+                                  vehicleTypeForPricing,
+                                  12,
+                                ) ??
+                                '0',
+                          );
+                          final hr24AmtStr = _cleanAmountForReceipt(
+                            _getFullDayAmountForVehicle(
+                                  vehicleTypeForPricing,
+                                ) ??
+                                '0',
+                          );
+                          final hr48AmtStr = _cleanAmountForReceipt(
+                            _getPassAmountForVehicle(
+                                  vehicleTypeForPricing,
+                                  48,
+                                ) ??
+                                '0',
+                          );
+                          final hr72AmtStr = _cleanAmountForReceipt(
+                            _getPassAmountForVehicle(
+                                  vehicleTypeForPricing,
+                                  72,
+                                ) ??
+                                '0',
+                          );
 
-                // const SizedBox(height: 20),
-                // _buildSectionHeader("Payment Selection"),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Payment Type", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
+                          final is12hDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}12h'] ??
+                                  false);
+                          final is24hDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}FullDay'] ??
+                                  false);
+                          final is48hDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}48h'] ??
+                                  false);
+                          final is72hDisabled =
+                              !(_enabledSettings['${vehicleTypeForPricing.toLowerCase()}72h'] ??
+                                  false);
+
+                          return Row(
                             children: [
-                              _buildRadioOption("On Entry", _paymentType == "On Entry", (v) => setState(() => _paymentType = v!), fontSize: 9),
-                              _buildRadioOption("On Exit", _paymentType == "On Exit", (v) => setState(() => _paymentType = v!), fontSize: 9),
+                              _buildPassButton(
+                                12,
+                                _selectedPass == 12,
+                                () => _handlePassSelection(12),
+                                bottomText: '₹$hr12AmtStr',
+                                isDisabled: is12hDisabled,
+                              ),
+                              const SizedBox(width: 5),
+                              _buildPassButton(
+                                24,
+                                _selectedPass == 24,
+                                () => _handlePassSelection(24),
+                                bottomText: '₹$hr24AmtStr',
+                                isDisabled: is24hDisabled,
+                              ),
+                              const SizedBox(width: 5),
+                              _buildPassButton(
+                                48,
+                                _selectedPass == 48,
+                                () => _handlePassSelection(48),
+                                bottomText: '₹$hr48AmtStr',
+                                isDisabled: is48hDisabled,
+                              ),
+                              const SizedBox(width: 5),
+                              _buildPassButton(
+                                72,
+                                _selectedPass == 72,
+                                () => _handlePassSelection(72),
+                                bottomText: '₹$hr72AmtStr',
+                                isDisabled: is72hDisabled,
+                              ),
                             ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 15),
+                      // Compact Date/Time Picker with grey background for Instant, white for others
+                      _selectedOption == 'Instant'
+                          ? greyfield(
+                            labelColor: customTeal,
+                            selectedColor: customTeal,
+                            controller: dateTimeController,
+                            focusNode: _dateTimeFocusNode,
+                            keyboard: TextInputType.text,
+                            obscure: false,
+                            textInputAction: TextInputAction.done,
+                            inputFormatter: const [],
+                            label: 'Select Parking Date & Time',
+                            hint: 'Select Parking Date & Time',
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: customTeal,
+                              size: 14,
+                            ),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: customTeal,
+                                size: 20,
+                              ),
+                            ),
+                            readOnly: true,
+                            onTap: null, // Not editable for Instant
+                          )
+                          : CusTextField(
+                            labelColor: customTeal,
+                            selectedColor: customTeal,
+                            controller: dateTimeController,
+                            focusNode: _dateTimeFocusNode,
+                            keyboard: TextInputType.text,
+                            obscure: false,
+                            textInputAction: TextInputAction.done,
+                            inputFormatter: const [],
+                            label: 'Select Parking Date & Time',
+                            hint: 'Select Parking Date & Time',
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: customTeal,
+                              size: 14,
+                            ),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: customTeal,
+                                size: 20,
+                              ),
+                            ),
+                            readOnly: true,
+                            onTap: () async {
+                              _showDateTimePicker();
+                            },
+                          ),
+
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Colors.grey.shade300,
+                              thickness: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: Checkbox(
+                              value: _showOptionalInfo,
+                              activeColor: ColorUtils.primarycolor(),
+                              onChanged:
+                                  (val) =>
+                                      setState(() => _showOptionalInfo = val!),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap:
+                                () => setState(
+                                  () => _showOptionalInfo = !_showOptionalInfo,
+                                ),
+                            child: Text(
+                              "Optional Information",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Divider(
+                              color: Colors.grey.shade300,
+                              thickness: 1,
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Payment Mode", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+
+                      if (_showOptionalInfo) ...[
+                        const SizedBox(height: 15),
+                        CusTextField(
+                          labelColor: customTeal,
+                          selectedColor: customTeal,
+                          controller: checkout,
+                          focusNode: _checkout,
+                          keyboard: TextInputType.text,
+                          obscure: false,
+                          textInputAction: TextInputAction.next,
+                          inputFormatter: const [],
+                          label: 'Tentative checkout date & time',
+                          hint: 'Tentative checkout date & time',
+                          prefixIcon: Icon(
+                            Icons.timer,
+                            color: customTeal,
+                            size: 14,
+                          ),
+                          suffixIcon: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: customTeal,
+                              size: 20,
+                            ),
+                          ),
+                          readOnly: true,
+                          onTap: _tenditivecheckout,
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: _buildLabelAboveField(
+                                label: 'Car Type',
+                                child: _buildSmallField(
+                                  CartypeController,
+                                  _CartypeFocusNode,
+                                  'Model',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildLabelAboveField(
+                                label: 'Person name',
+                                child: _buildSmallField(
+                                  nameController,
+                                  _nameFocusNode,
+                                  'Name',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildLabelAboveField(
+                                label: 'Mobile number',
+                                child: _buildSmallField(
+                                  mobileController,
+                                  _mobileFocusNode,
+                                  'Mobile',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        if (_valetEnabled)
+                          _buildLabelAboveField(
+                            label: 'Select Valet Driver',
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return DropdownMenu<String>(
+                                  key: ValueKey(_valetDropdownKey),
+                                  initialSelection: _selectedValetDriverId,
+                                  width: constraints.maxWidth,
+                                  menuHeight: 250,
+                                  hintText: 'Select Driver',
+                                  textStyle: GoogleFonts.poppins(fontSize: 12),
+                                  inputDecorationTheme: InputDecorationTheme(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 0,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: ColorUtils.primarycolor(),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: ColorUtils.primarycolor(),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: ColorUtils.primarycolor(),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                  dropdownMenuEntries:
+                                      _valetDrivers.map((driver) {
+                                        final firstName =
+                                            driver['firstName']?.toString() ??
+                                            '';
+                                        final lastName =
+                                            driver['lastName']?.toString() ??
+                                            '';
+                                        final fullName =
+                                            '$firstName $lastName'.trim();
+
+                                        return DropdownMenuEntry<String>(
+                                          value:
+                                              driver['_id']?.toString() ??
+                                              driver['id']?.toString() ??
+                                              '',
+                                          label:
+                                              fullName.isNotEmpty
+                                                  ? fullName
+                                                  : 'Unknown Driver',
+                                          style: MenuItemButton.styleFrom(
+                                            textStyle: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                  onSelected: (value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _selectedValetDriverId = value;
+                                      });
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        const SizedBox(height: 15),
+                        // Vehicle images - capture from camera (only for Instant parking, when Vehicle Upload is ON)
+                        if (_selectedOption == 'Instant' &&
+                            _vehicleUploadEnabled) ...[
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Add Vehicle Image",
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 4,
-                            runSpacing: 4,
-                            children: [
-                              _buildRadioOption("Online", _paymentMode == "Online", (v) => setState(() => _paymentMode = v!)),
-                              _buildRadioOption("Cash", _paymentMode == "Cash", (v) => setState(() => _paymentMode = v!)),
-                            ],
+                          GestureDetector(
+                            onTap: _captureVehicleImage,
+                            child: CustomPaint(
+                              painter: DashedBorderPainter(
+                                color: Colors.grey.shade400,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                width: double.infinity,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SvgPicture.asset(
+                                      'assets/svg/upload.svg',
+                                      height: 60,
+                                      fit: BoxFit.contain,
+                                    ),
+                                    const SizedBox(width: 20),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "Tap to capture",
+                                          style: GoogleFonts.poppins(
+                                            color: ColorUtils.primarycolor(),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        Text(
+                                          "JPG, PNG up to 5MB",
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                        ],
+
+                        if (_vehicleImages.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 90,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _vehicleImages.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          _vehicleImages[index],
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: -4,
+                                        right: -4,
+                                        child: GestureDetector(
+                                          onTap:
+                                              () => _removeVehicleImage(index),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 16,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          // const SizedBox(height: 10),
+                        ],
+                      ],
+
+                      // const SizedBox(height: 20),
+                      // _buildSectionHeader("Payment Selection"),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Payment Type",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    _buildRadioOption(
+                                      "On Entry",
+                                      _paymentType == "On Entry",
+                                      (v) => setState(() => _paymentType = v!),
+                                      fontSize: 9,
+                                    ),
+                                    _buildRadioOption(
+                                      "On Exit",
+                                      _paymentType == "On Exit",
+                                      (v) => setState(() => _paymentType = v!),
+                                      fontSize: 9,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Payment Mode",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    _buildRadioOption(
+                                      "Online",
+                                      _paymentMode == "Online",
+                                      (v) => setState(() => _paymentMode = v!),
+                                    ),
+                                    _buildRadioOption(
+                                      "Cash",
+                                      _paymentMode == "Cash",
+                                      (v) => setState(() => _paymentMode = v!),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
+                      const SizedBox(height: 15),
 
-                // if (_paymentMode == 'Online') _buildInlineUpiQr(),
-
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _buildActionButton(
-                      "Book Now", 
-                      Icons.check_circle, 
-                      ColorUtils.primarycolor(), 
-                      _isLoading ? () {} : _registerParking,
-                      isDisabled: !_bookEnabled,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildActionButton(
-                      "Book and Print", 
-                      Icons.print, 
-                      ColorUtils.primarycolor(), 
-                      _bookAndPrint,
-                      isDisabled: !(_bookEnabled && _printEnabled),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildActionButton(
-                      "Print and Exit", 
-                      Icons.exit_to_app, 
-                      ColorUtils.primarycolor(), 
-                      _isLoading ? () {} : _printAndExit,
-                      isDisabled: !(_printEnabled && _exitEnabled),
-                    ),
-                  ],
+                      // if (_paymentMode == 'Online') _buildInlineUpiQr(),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _buildActionButton(
+                            "Book Now",
+                            Icons.check_circle,
+                            ColorUtils.primarycolor(),
+                            _isLoading ? () {} : _registerParking,
+                            isDisabled: !_bookEnabled,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Book and Print",
+                            Icons.print,
+                            ColorUtils.primarycolor(),
+                            _bookAndPrint,
+                            isDisabled: !(_bookEnabled && _printEnabled),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Print and Exit",
+                            Icons.exit_to_app,
+                            ColorUtils.primarycolor(),
+                            _isLoading ? () {} : _printAndExit,
+                            isDisabled: !(_printEnabled && _exitEnabled),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    ));
+        );
   }
+
   Widget infoRow({
     required BuildContext context,
     required List<ParkingCharge> carEntries,
@@ -2952,7 +3420,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       width: 500,
       decoration: BoxDecoration(
         color: ColorUtils.secondarycolor(),
-        borderRadius: BorderRadius.circular(5.0), // Full border radius applied here
+        borderRadius: BorderRadius.circular(
+          5.0,
+        ), // Full border radius applied here
         border: Border.all(
           color: ColorUtils.primarycolor(), // Border color
           width: 1, // Border thickness
@@ -2967,9 +3437,15 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color:   ColorUtils.primarycolor(),),
+              Icon(icon, color: ColorUtils.primarycolor()),
               const SizedBox(width: 10),
-              Text(title, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
 
@@ -2978,9 +3454,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           // GridView to display the charges in a grid format
           Container(
             child: GridView.builder(
-              shrinkWrap: true,  // Make the GridView take up only the necessary space
+              shrinkWrap:
+                  true, // Make the GridView take up only the necessary space
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,  // Number of columns in the grid
+                crossAxisCount: 3, // Number of columns in the grid
                 childAspectRatio: 1.3, // Aspect ratio of each card
               ),
               itemCount: allEntries.length,
@@ -2990,7 +3467,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                   color: Colors.white,
                   elevation: 4,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5.0), // Optional: rounded corners
+                    borderRadius: BorderRadius.circular(
+                      5.0,
+                    ), // Optional: rounded corners
                     side: BorderSide(
                       color: ColorUtils.primarycolor(), // Color of the outline
                       width: 0.5, // Thickness of the outline
@@ -3021,7 +3500,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                         // SizedBox(height: 3), // Space between type and amount
                         Text(
                           '₹${entry.amount}',
-                          style:GoogleFonts.poppins(
+                          style: GoogleFonts.poppins(
                             fontSize: 10, // Font size for amount
                             color: Colors.grey[600],
                           ),
@@ -3067,7 +3546,6 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     });
   }
 
-
   Widget _buildSectionHeader(String title) {
     return Container(
       width: double.infinity,
@@ -3082,7 +3560,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     );
   }
 
-  Widget _buildRadioOption(String label, bool isSelected, Function(String?) onChanged, {double fontSize = 10}) {
+  Widget _buildRadioOption(
+    String label,
+    bool isSelected,
+    Function(String?) onChanged, {
+    double fontSize = 10,
+  }) {
     return GestureDetector(
       onTap: () => onChanged(label),
       child: Container(
@@ -3092,7 +3575,8 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           color: isSelected ? ColorUtils.primarycolor() : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? ColorUtils.primarycolor() : Colors.grey.shade300,
+            color:
+                isSelected ? ColorUtils.primarycolor() : Colors.grey.shade300,
             width: 1,
           ),
         ),
@@ -3119,7 +3603,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     );
   }
 
-  Widget _buildVehicleToggleItem(int index, IconData icon, String label, {bool isDisabled = false}) {
+  Widget _buildVehicleToggleItem(
+    int index,
+    IconData icon,
+    String label, {
+    bool isDisabled = false,
+  }) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: isDisabled ? null : () => setState(() => _selectedIndex = index),
@@ -3127,13 +3616,20 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         width: 70,
         height: 35,
         decoration: BoxDecoration(
-          color: isDisabled 
-              ? Colors.grey.shade100 
-              : (isSelected ? ColorUtils.primarycolor().withOpacity(0.1) : Colors.white),
+          color:
+              isDisabled
+                  ? Colors.grey.shade100
+                  : (isSelected
+                      ? ColorUtils.primarycolor().withOpacity(0.1)
+                      : Colors.white),
           border: Border.all(
-              color: isDisabled 
-                  ? Colors.grey.shade200 
-                  : (isSelected ? ColorUtils.primarycolor() : Colors.grey.shade300)),
+            color:
+                isDisabled
+                    ? Colors.grey.shade200
+                    : (isSelected
+                        ? ColorUtils.primarycolor()
+                        : Colors.grey.shade300),
+          ),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(index == 0 ? 8 : 0),
             bottomLeft: Radius.circular(index == 0 ? 8 : 0),
@@ -3144,37 +3640,66 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, 
-                color: isDisabled 
-                    ? Colors.grey.shade300 
-                    : (isSelected ? ColorUtils.primarycolor() : Colors.grey), 
-                size: 16),
+            Icon(
+              icon,
+              color:
+                  isDisabled
+                      ? Colors.grey.shade300
+                      : (isSelected ? ColorUtils.primarycolor() : Colors.grey),
+              size: 16,
+            ),
             const SizedBox(width: 4),
-            Text(label, 
-                style: TextStyle(
-                    color: isDisabled 
-                        ? Colors.grey.shade400 
-                        : (isSelected ? ColorUtils.primarycolor() : Colors.grey), 
-                    fontSize: 11, 
-                    fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: TextStyle(
+                color:
+                    isDisabled
+                        ? Colors.grey.shade400
+                        : (isSelected
+                            ? ColorUtils.primarycolor()
+                            : Colors.grey),
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLabelAboveField({required String label, required Widget child, Color labelColor = Colors.grey}) {
+  Widget _buildLabelAboveField({
+    required String label,
+    required Widget child,
+    Color labelColor = Colors.grey,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: labelColor, fontSize: 9, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: TextStyle(
+            color: labelColor,
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 4),
         child,
       ],
     );
   }
 
-  Widget _buildSmallField(TextEditingController controller, FocusNode focusNode, String hint, {bool isRequired = false, BorderRadius? borderRadius, TextInputType? keyboardType, bool autofocus = false, bool enabled = true}) {
+  Widget _buildSmallField(
+    TextEditingController controller,
+    FocusNode focusNode,
+    String hint, {
+    bool isRequired = false,
+    BorderRadius? borderRadius,
+    TextInputType? keyboardType,
+    bool autofocus = false,
+    bool enabled = true,
+  }) {
     return AnimatedBuilder(
       animation: focusNode,
       builder: (context, child) {
@@ -3202,7 +3727,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 10,
+          ),
           border: InputBorder.none,
           isDense: true,
         ),
@@ -3224,13 +3752,18 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           height: 50,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isDisabled
-                ? Colors.grey.shade200
-                : (isSelected ? ColorUtils.primarycolor() : Colors.white),
+            color:
+                isDisabled
+                    ? Colors.grey.shade200
+                    : (isSelected ? ColorUtils.primarycolor() : Colors.white),
             border: Border.all(
-                color: isDisabled
-                    ? Colors.grey.shade300
-                    : (isSelected ? ColorUtils.primarycolor() : Colors.grey.shade300)),
+              color:
+                  isDisabled
+                      ? Colors.grey.shade300
+                      : (isSelected
+                          ? ColorUtils.primarycolor()
+                          : Colors.grey.shade300),
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -3241,9 +3774,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                 title,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  color: isDisabled
-                      ? Colors.grey.shade400
-                      : (isSelected ? Colors.white : Colors.black),
+                  color:
+                      isDisabled
+                          ? Colors.grey.shade400
+                          : (isSelected ? Colors.white : Colors.black),
                   fontWeight: FontWeight.bold,
                   fontSize: 10,
                   height: 1.1,
@@ -3258,9 +3792,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
-                      color: isDisabled
-                          ? Colors.grey.shade400
-                          : (isSelected ? Colors.white : Colors.grey.shade700),
+                      color:
+                          isDisabled
+                              ? Colors.grey.shade400
+                              : (isSelected
+                                  ? Colors.white
+                                  : Colors.grey.shade700),
                       fontWeight: FontWeight.w600,
                       fontSize: 8,
                       height: 1.0,
@@ -3289,13 +3826,18 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           height: 45,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isDisabled
-                ? Colors.grey.shade200
-                : (isSelected ? ColorUtils.primarycolor() : Colors.white),
+            color:
+                isDisabled
+                    ? Colors.grey.shade200
+                    : (isSelected ? ColorUtils.primarycolor() : Colors.white),
             border: Border.all(
-                color: isDisabled
-                    ? Colors.grey.shade300
-                    : (isSelected ? ColorUtils.primarycolor() : Colors.grey.shade300)),
+              color:
+                  isDisabled
+                      ? Colors.grey.shade300
+                      : (isSelected
+                          ? ColorUtils.primarycolor()
+                          : Colors.grey.shade300),
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -3305,9 +3847,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
               Text(
                 topText ?? "$hours",
                 style: GoogleFonts.poppins(
-                  color: isDisabled
-                      ? Colors.grey.shade400
-                      : (isSelected ? Colors.white : ColorUtils.primarycolor()),
+                  color:
+                      isDisabled
+                          ? Colors.grey.shade400
+                          : (isSelected
+                              ? Colors.white
+                              : ColorUtils.primarycolor()),
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                   height: 1.0,
@@ -3316,9 +3861,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
               Text(
                 bottomText ?? "Hours Pass",
                 style: GoogleFonts.poppins(
-                  color: isDisabled
-                      ? Colors.grey.shade400
-                      : (isSelected ? Colors.white : Colors.grey.shade600),
+                  color:
+                      isDisabled
+                          ? Colors.grey.shade400
+                          : (isSelected ? Colors.white : Colors.grey.shade600),
                   fontWeight: FontWeight.w500,
                   fontSize: 8,
                   height: 1.0,
@@ -3331,7 +3877,13 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onTap, {bool isDisabled = false}) {
+  Widget _buildActionButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap, {
+    bool isDisabled = false,
+  }) {
     return Expanded(
       child: ElevatedButton.icon(
         onPressed: isDisabled ? null : onTap,
@@ -3364,16 +3916,19 @@ class DashedBorderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    var paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
+    var paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke;
 
     var path = Path();
-    path.addRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(8),
-    ));
+    path.addRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(8),
+      ),
+    );
 
     Path dashPath = Path();
     double distance = 0.0;
@@ -3419,7 +3974,7 @@ class CategoryItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 47,
-        width: 106,  // Set the width to a larger value (e.g., 150 or 120)
+        width: 106, // Set the width to a larger value (e.g., 150 or 120)
         // padding: EdgeInsets.symmetric(horizontal: 12.0), // Adjust padding if needed
         decoration: BoxDecoration(
           color: isSelected ? customTeal : Colors.grey[200],
@@ -3438,7 +3993,7 @@ class CategoryItem extends StatelessWidget {
             const SizedBox(width: 9.0), // Adjust space between icon and title
             Text(
               title,
-              style:GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
                 color: isSelected ? Colors.white : Colors.black,
                 fontWeight: FontWeight.bold,
               ),
@@ -3449,8 +4004,6 @@ class CategoryItem extends StatelessWidget {
     );
   }
 }
-
-
 
 class CusTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -3502,17 +4055,23 @@ class CusTextField extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 12,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 8.0), // Add space before icon
             child: prefixIcon,
-
           ),
           suffixIcon: suffixIcon,
           filled: true,
           fillColor: Colors.white,
-          labelStyle: GoogleFonts.poppins(color: Colors.grey, fontSize: 14,),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+          labelStyle: GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10.0,
+            horizontal: 12.0,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5.0),
             borderSide: const BorderSide(color: Colors.grey),
@@ -3525,8 +4084,14 @@ class CusTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(5.0),
             borderSide: const BorderSide(color: Colors.grey, width: 0.5),
           ),
-          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 20), // Adjusted to remove extra space
-          suffixIconConstraints: const BoxConstraints(minWidth: 10, minHeight: 20),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 20,
+          ), // Adjusted to remove extra space
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 10,
+            minHeight: 20,
+          ),
         ),
         readOnly: readOnly,
         onTap: onTap,
@@ -3570,7 +4135,7 @@ class CuTextField extends StatelessWidget {
     this.suffixIcon,
     required this.selectedColor, // Initialize selectedColor
     required this.labelColor,
-    this.isSelected = false,// Initialize labelColor
+    this.isSelected = false, // Initialize labelColor
   });
 
   @override
@@ -3593,20 +4158,31 @@ class CuTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
         filled: true, // Fill the background
         fillColor: Colors.white, // Keep background white
-        labelStyle:GoogleFonts.poppins(color: Colors.red,),
+        labelStyle: GoogleFonts.poppins(color: Colors.red),
 
-        contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),// Set label text color
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 10.0,
+          horizontal: 12.0,
+        ), // Set label text color
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5.0),
-          borderSide: const BorderSide(color: Colors.red,), // Default border color
+          borderSide: const BorderSide(
+            color: Colors.red,
+          ), // Default border color
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5.0),
-          borderSide: const BorderSide(color: Colors.red, width: 0.5), // Use primary color when focused
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 0.5,
+          ), // Use primary color when focused
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(5.0),
-          borderSide: const BorderSide(color: Colors.red, width: 0.5), // Use grey for enabled state
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 0.5,
+          ), // Use grey for enabled state
         ),
       ),
       readOnly: readOnly,
@@ -3615,7 +4191,6 @@ class CuTextField extends StatelessWidget {
     );
   }
 }
-
 
 class greyfield extends StatelessWidget {
   final TextEditingController controller;
@@ -3673,24 +4248,33 @@ class greyfield extends StatelessWidget {
           ),
           suffixIcon: suffixIcon,
           filled: true, // Fill the background
-          fillColor: Colors.grey[200], // Change this to grey color for background
-          labelStyle: GoogleFonts.poppins(color: Colors.grey, ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
+          fillColor:
+              Colors.grey[200], // Change this to grey color for background
+          labelStyle: GoogleFonts.poppins(color: Colors.grey),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 10.0,
+            horizontal: 12.0,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5.0),
-            borderSide: const BorderSide(color: Colors.grey, ),
+            borderSide: const BorderSide(color: Colors.grey),
           ),
-          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 20), // Adjusted to remove extra space
-          suffixIconConstraints: const BoxConstraints(minWidth: 10, minHeight: 20),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 20,
+          ), // Adjusted to remove extra space
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 10,
+            minHeight: 20,
+          ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5.0),
             borderSide: const BorderSide(color: Colors.red, width: 1.0),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(5.0),
-            borderSide: const BorderSide(color: Colors.grey,  width: 0.5),
+            borderSide: const BorderSide(color: Colors.grey, width: 0.5),
           ),
-
         ),
 
         readOnly: readOnly,
