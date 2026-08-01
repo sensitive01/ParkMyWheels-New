@@ -1495,8 +1495,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   }
 
   bool _isValetUIApplicable() {
-    return _currentVehicleTypeForPricing() == 'Car' &&
-        _selectedOption == 'Instant';
+    return _currentVehicleTypeForPricing() == 'Car';
   }
 
   bool _isValetChargeApplicable() {
@@ -3361,8 +3360,6 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      // if (_paymentMode == 'Online') _buildInlineUpiQr(),
-                      const SizedBox(height: 10),
                       Row(
                         children: [
                           _buildActionButton(
@@ -3390,6 +3387,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 15),
+                      if (_paymentMode == 'Online') _buildInlineUpiQr(),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
