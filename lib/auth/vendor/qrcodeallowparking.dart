@@ -1138,6 +1138,14 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
               Navigator.pop(context);
             },
           ),
+          title: Text(
+            'Scanning Results',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         SliverToBoxAdapter(
           child: Column(
