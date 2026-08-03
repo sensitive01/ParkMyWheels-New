@@ -386,6 +386,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
   late Timer _timer;
   final String apiUrl = '${ApiConfig.baseUrl}get-slot-details-vendor';
   bool _isLoading = false;
+  String _activeLoadingButton = '';
   String? _selectedSubscription;
   String? dropdownValue;
   final List<String> subscriptionOptions = [
@@ -806,6 +807,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     setState(() {
       _isLoading = true;
+      _activeLoadingButton = 'bookNow';
     });
 
     print('API: machinecreatebooking'); // Book Now uses machine API
@@ -1093,6 +1095,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     setState(() {
       _isLoading = true;
+      _activeLoadingButton = 'bookAndPrint';
     });
 
     final url = Uri.parse('${ApiConfig.baseUrl}vendor/vendorcreatebooking');
@@ -2065,8 +2068,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       final slabLines = _getHourlyPricingSlabLinesForVehicle(vehicleType);
       if (slabLines.isNotEmpty) {
         if (instantParkingReceipt) {
-          await SunmiPrinter.printText('Parking Charges : Rs. $cleanedAmt');
-          await SunmiPrinter.lineWrap(1);
+          // Parking Charges removed for new booking instant
+          // await SunmiPrinter.printText('Parking Charges : Rs. $cleanedAmt');
+          // await SunmiPrinter.lineWrap(1);
         } else {
           // await SunmiPrinter.printText(slabLines[0]);
           // if (slabLines.length > 1) {
@@ -2074,8 +2078,11 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           // }
         }
       } else if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
-        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
-        await SunmiPrinter.lineWrap(1);
+        // Commenting out Amount as well for instant receipts if no slab lines
+        if (!instantParkingReceipt) {
+          await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+          await SunmiPrinter.lineWrap(1);
+        }
       }
     }
 
@@ -2335,6 +2342,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     setState(() {
       _isLoading = true;
+      _activeLoadingButton = 'printAndExit';
     });
 
     final url = Uri.parse('${ApiConfig.baseUrl}vendor/vendorcreatebooking');
@@ -2979,6 +2987,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                                 24,
                                 _selectedPass == 24,
                                 () => _handlePassSelection(24),
+                                topText: "Full Day",
                                 bottomText: '₹$hr24AmtStr',
                                 isDisabled: is24hDisabled,
                               ),
@@ -3141,8 +3150,9 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             "Book Now",
                             Icons.check_circle,
                             ColorUtils.primarycolor(),
-                            _isLoading ? () {} : _registerParking,
+                            _registerParking,
                             isDisabled: !_bookEnabled,
+                            isLoading: _isLoading && _activeLoadingButton == 'bookNow',
                           ),
                           const SizedBox(width: 8),
                           _buildActionButton(
@@ -3151,14 +3161,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             ColorUtils.primarycolor(),
                             _bookAndPrint,
                             isDisabled: !(_bookEnabled && _printEnabled),
+                            isLoading: _isLoading && _activeLoadingButton == 'bookAndPrint',
                           ),
                           const SizedBox(width: 8),
                           _buildActionButton(
                             "Print and Exit",
                             Icons.exit_to_app,
                             ColorUtils.primarycolor(),
-                            _isLoading ? () {} : _printAndExit,
+                            _printAndExit,
                             isDisabled: !(_printEnabled && _exitEnabled),
+                            isLoading: _isLoading && _activeLoadingButton == 'printAndExit',
                           ),
                         ],
                       ),
@@ -3964,18 +3976,25 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     Color color,
     VoidCallback onTap, {
     bool isDisabled = false,
+    bool isLoading = false,
   }) {
     return Expanded(
       child: ElevatedButton.icon(
-        onPressed: isDisabled ? null : onTap,
-        icon: Icon(icon, size: 16),
+        onPressed: (isDisabled || isLoading) ? null : onTap,
+        icon: isLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(icon, size: 16),
         label: Text(label, style: const TextStyle(fontSize: 11)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDisabled ? Colors.grey.shade300 : color,
-          foregroundColor: isDisabled ? Colors.grey.shade500 : Colors.white,
+          backgroundColor: (isDisabled || isLoading) ? Colors.grey.shade300 : color,
+          foregroundColor: (isDisabled || isLoading) ? Colors.grey.shade500 : Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          elevation: isDisabled ? 0 : 2,
+          elevation: (isDisabled || isLoading) ? 0 : 2,
         ),
       ),
     );

@@ -4189,8 +4189,9 @@ class UniversalPrintHelper {
       }
     } else if (slabLines.isNotEmpty) {
       if (instantParkingReceipt) {
-        bytes += 'Parking Charges : Rs. $cleanedEscAmt'.codeUnits;
-        bytes += [0x0A];
+        // Parking Charges removed for new booking instant
+        // bytes += 'Parking Charges : Rs. $cleanedEscAmt'.codeUnits;
+        // bytes += [0x0A];
       } else {
         // for (final line in slabLines) {
         //   bytes += line.codeUnits;
@@ -4199,8 +4200,10 @@ class UniversalPrintHelper {
       }
     } else {
       if (cleanedEscAmt.isNotEmpty && cleanedEscAmt != '0') {
-        bytes += 'Amount : Rs. $cleanedEscAmt'.codeUnits;
-        bytes += [0x0A];
+        if (!instantParkingReceipt) {
+          bytes += 'Amount : Rs. $cleanedEscAmt'.codeUnits;
+          bytes += [0x0A];
+        }
       }
     }
 

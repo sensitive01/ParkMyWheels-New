@@ -1199,6 +1199,19 @@ class _editvendorprofileState extends State<editvendorprofile> {
   }
 
   Widget _styledBox(String value) {
+    String displayValue = value;
+    if (value.isNotEmpty) {
+      final parts = value.split(':');
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        final period = hour >= 12 ? 'PM' : 'AM';
+        int hour12 = hour % 12;
+        if (hour12 == 0) hour12 = 12;
+        displayValue = '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      }
+    }
+
     return Container(
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -1208,7 +1221,7 @@ class _editvendorprofileState extends State<editvendorprofile> {
       ),
       alignment: Alignment.centerLeft,
       child: Text(
-        value,
+        displayValue,
         style: const TextStyle(fontSize: 11, color: Colors.black87),
       ),
     );
@@ -1555,31 +1568,11 @@ class _BusinessHoursState extends State<BusinessHours> {
   bool isLoading = true;
   bool hasError = false;
 
-  late final List<String> hours;
-  late final List<DropdownMenuItem<String>> hourDropdownItems;
-
-  List<Map<String, dynamic>> businessHours = List.generate(7, (index) {
-    return {
-      'day': getDayOfWeek(index),
-      'openTime': '09:00',
-      'closeTime': '21:00',
-      'is24Hours': false,
-      'isClosed': false,
-    };
-  });
+  List<Map<String, dynamic>> businessHours = [];
 
   @override
   void initState() {
     super.initState();
-
-    hours =
-        List.generate(24, (index) => index < 10 ? '0$index:00' : '$index:00');
-    hourDropdownItems = hours
-        .map((time) => DropdownMenuItem<String>(
-      value: time,
-      child: Text(time),
-    ))
-        .toList();
     _initializeDefaultHours();
     loadVendorData();
   }
@@ -1605,13 +1598,13 @@ class _BusinessHoursState extends State<BusinessHours> {
         setState(() {
           if (data['businessHours'] != null && data['businessHours'].isNotEmpty) {
             businessHours = List<Map<String, dynamic>>.from(data['businessHours']);
-            // Sanitize openTime and closeTime
+            // Sanitize openTime and closeTime for empty values
             for (var day in businessHours) {
-              if (!hours.contains(day['openTime'])) {
-                day['openTime'] = '09:00'; // Default to a valid time
+              if (day['openTime'] == null || day['openTime'].toString().isEmpty) {
+                day['openTime'] = '09:00';
               }
-              if (!hours.contains(day['closeTime'])) {
-                day['closeTime'] = '21:00'; // Default to a valid time
+              if (day['closeTime'] == null || day['closeTime'].toString().isEmpty) {
+                day['closeTime'] = '21:00';
               }
             }
           } else {
@@ -1890,24 +1883,86 @@ class _BusinessHoursState extends State<BusinessHours> {
 
   Widget _styledDropdown(String value, ValueChanged<String?> onChanged,
       {required bool isSmallScreen}) {
-    return Container(
-      height: 30,
-      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 6),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        isExpanded: true,
-        underline: const SizedBox(),
-        icon: Icon(Icons.arrow_drop_down,
-            size: isSmallScreen ? 14 : 16, color: Colors.indigo),
-        style:
-        TextStyle(fontSize: isSmallScreen ? 10 : 11, color: Colors.black87),
-        dropdownColor: Colors.white,
-        items: hourDropdownItems,
-        onChanged: onChanged,
+    String displayValue = value;
+    if (value.isNotEmpty) {
+      final parts = value.split(':');
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        final period = hour >= 12 ? 'PM' : 'AM';
+        int hour12 = hour % 12;
+        if (hour12 == 0) hour12 = 12;
+        displayValue = '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      }
+    }
+
+    return GestureDetector(
+      onTap: () async {
+        TimeOfDay initialTime = const TimeOfDay(hour: 9, minute: 0);
+        if (value.isNotEmpty) {
+          final parts = value.split(':');
+          if (parts.length >= 2) {
+            initialTime = TimeOfDay(
+              hour: int.tryParse(parts[0]) ?? 9,
+              minute: int.tryParse(parts[1]) ?? 0,
+            );
+          }
+        }
+        
+        final pickedTime = await showTimePicker(
+          context: context,
+          initialTime: initialTime,
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: ColorUtils.primarycolor(),
+                  onPrimary: Colors.white,
+                  onSurface: Colors.black,
+                  surface: Colors.white,
+                  secondary: ColorUtils.primarycolor(),
+                  onSecondary: Colors.white,
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: ColorUtils.primarycolor(),
+                  ),
+                ),
+              ),
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+                child: child!,
+              ),
+            );
+          },
+        );
+
+        if (pickedTime != null) {
+          final hourStr = pickedTime.hour.toString().padLeft(2, '0');
+          final minStr = pickedTime.minute.toString().padLeft(2, '0');
+          onChanged('$hourStr:$minStr');
+        }
+      },
+      child: Container(
+        height: 30,
+        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(4),
+          color: Colors.white,
+        ),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              displayValue,
+              style: TextStyle(fontSize: isSmallScreen ? 10 : 11, color: Colors.black87),
+            ),
+            Icon(Icons.arrow_drop_down,
+                size: isSmallScreen ? 14 : 16, color: Colors.indigo),
+          ],
+        ),
       ),
     );
   }

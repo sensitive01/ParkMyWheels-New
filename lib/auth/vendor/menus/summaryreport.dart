@@ -359,6 +359,12 @@ class _SummaryReportScreenState extends State<SummaryReportScreen>
         isSubscriptionSts(sts) ||
         RegExp(r'^\d+(?:hr|h)$', caseSensitive: false).hasMatch(sts);
 
+    // If it is a purely hourly/instant booking and hasn't been completed yet,
+    // the amount hasn't been collected. Wait for exit.
+    if (!isPassOrSub && b.status.trim().toUpperCase() == 'PARKED') {
+      return 0.0;
+    }
+
     final valetAmount =
         isPassOrSub ? 0.0 : (double.tryParse(b.valetCharge) ?? 0.0);
     return baseAmount + valetAmount;

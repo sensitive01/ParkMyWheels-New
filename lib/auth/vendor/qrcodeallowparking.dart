@@ -1144,137 +1144,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_vendor != null) ...[
-                Column(
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          // color: ColorUtils.primarycolor(),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color:
-                                ColorUtils.primarycolor(), // Ensure the background color is set
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(15),
-                              bottomRight: Radius.circular(15),
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start, // Aligns everything to the top
-                            children: [
-                              Expanded(
-                                // Ensures the column takes only necessary space
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment
-                                          .start, // Aligns text to the left
-                                  mainAxisSize:
-                                      MainAxisSize.min, // Reduces extra space
-                                  children: [
-                                    const SizedBox(height: 5),
-                                    SizedBox(
-                                      child: Text(
-                                        _vendor?.vendorName ?? '',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          height: 1.2,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 0,
-                                    ), // Adjusted spacing
-                                    Text(
-                                      _vendor!.address,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        height: 1.2,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 5),
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                children: [
-                                  const SizedBox(height: 5),
-                                  Padding(
-                                    padding: const EdgeInsets.all(5.0),
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        final double latitude =
-                                            double.tryParse(
-                                              _vendor?.latitude ?? '0',
-                                            ) ??
-                                            0.0;
-                                        final double longitude =
-                                            double.tryParse(
-                                              _vendor?.longitude ?? '0',
-                                            ) ??
-                                            0.0;
 
-                                        final String googleMapsUrl =
-                                            'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
-
-                                        if (await canLaunch(googleMapsUrl)) {
-                                          await launch(googleMapsUrl);
-                                        } else {
-                                          debugPrint(
-                                            "Could not launch $googleMapsUrl",
-                                          );
-                                        }
-                                      },
-                                      child: Container(
-                                        height: 20,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            3,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 1.2,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              '${_vendor?.distance != null ? _vendor!.distance?.toStringAsFixed(2) : 'N/A'} km',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Icon(
-                                              Icons.telegram,
-                                              size: 16.0,
-                                              color: Colors.blue,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // const SizedBox(height: 5), // Reduced spacing
-                      ],
-                    ),
-                    const SizedBox(height: 8),
 
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -1361,7 +1231,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                           return Column(
                             children: [
                               SizedBox(
-                                height: 160,
+                                height: 100,
                                 child: Stack(
                                   children: [
                                     Positioned(
@@ -1725,7 +1595,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                                               else
                                                 const Icon(
                                                   Icons.qr_code_scanner,
-                                                  color: Colors.black,
+                                                  color: Colors.green,
                                                   size: 24,
                                                 ),
                                               const SizedBox(width: 10),
@@ -2238,8 +2108,6 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                         ],
                       ),
                     ),
-                  ],
-                ),
               ],
             ],
           ),

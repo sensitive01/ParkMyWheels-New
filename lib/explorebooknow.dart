@@ -1869,6 +1869,19 @@ class _ExploreBookState extends State<ExploreBook> {
   }
 
   Widget _styledBox(String value) {
+    String displayValue = value;
+    if (value.isNotEmpty) {
+      final parts = value.split(":");
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        final period = hour >= 12 ? "PM" : "AM";
+        int hour12 = hour % 12;
+        if (hour12 == 0) hour12 = 12;
+        displayValue = "${hour12.toString().padLeft(2, "0")}:${minute.toString().padLeft(2, "0")} $period";
+      }
+    }
+
     return Container(
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -1878,7 +1891,7 @@ class _ExploreBookState extends State<ExploreBook> {
       ),
       alignment: Alignment.centerLeft,
       child: Text(
-        value,
+        displayValue,
         style: const TextStyle(fontSize: 11, color: Colors.black87),
       ),
     );
@@ -4069,6 +4082,19 @@ class _ChooseParkingPageState extends State<liveExploreBook> {
   }
 
   Widget _styledBox(String value) {
+    String displayValue = value;
+    if (value.isNotEmpty) {
+      final parts = value.split(":");
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        final period = hour >= 12 ? "PM" : "AM";
+        int hour12 = hour % 12;
+        if (hour12 == 0) hour12 = 12;
+        displayValue = "${hour12.toString().padLeft(2, "0")}:${minute.toString().padLeft(2, "0")} $period";
+      }
+    }
+
     return Container(
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -4078,7 +4104,7 @@ class _ChooseParkingPageState extends State<liveExploreBook> {
       ),
       alignment: Alignment.centerLeft,
       child: Text(
-        value,
+        displayValue,
         style: const TextStyle(fontSize: 11, color: Colors.black87),
       ),
     );
