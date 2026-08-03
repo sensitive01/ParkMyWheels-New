@@ -341,45 +341,42 @@ class _CustomReportScreenState extends State<CustomReportScreen> {
     return Expanded(
       child: GestureDetector(
         onTap: () => _selectDateTime(isStart),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade400),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: GoogleFonts.poppins(
+              fontSize: 12,
+              color: ColorUtils.primarycolor(),
+              fontWeight: FontWeight.bold,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade400),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade400),
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: ColorUtils.primarycolor(),
-                  fontWeight: FontWeight.bold,
-                ),
+              Icon(
+                Icons.calendar_month,
+                size: 16,
+                color: Colors.grey.shade700,
               ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_month,
-                    size: 16,
-                    color: Colors.grey.shade700,
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  DateFormat('dd-MM-yyyy hh:mm a').format(dateTime),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      DateFormat('dd-MM-yyyy hh:mm a').format(dateTime),
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -441,7 +438,7 @@ class _CustomReportScreenState extends State<CustomReportScreen> {
               : _error != null
               ? Center(child: Text(_error!))
               : Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 16.0),
                 child: Column(
                   children: [
                     Row(
@@ -586,30 +583,30 @@ class _CustomReportScreenState extends State<CustomReportScreen> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _printReport(filtered, totals),
+                                  icon: const Icon(Icons.print, size: 20),
+                                  label: Text(
+                                    'Print Report',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ColorUtils.primarycolor(),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _printReport(filtered, totals),
-                        icon: const Icon(Icons.print, size: 20),
-                        label: Text(
-                          'Print Report',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: ColorUtils.primarycolor(),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),

@@ -3845,6 +3845,7 @@ class UniversalPrintHelper {
     bool instantParkingReceipt = false,
     double? valetCharge,
     String? operationalTimings,
+    bool isEntryReceipt = false,
   }) async {
     final String headerVendorName =
         vendorName.trim().isEmpty ? 'Vendor' : vendorName.trim();
@@ -3979,6 +3980,12 @@ class UniversalPrintHelper {
       if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
         await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
       }
+    }
+
+    if (bookingId.isNotEmpty && isEntryReceipt) {
+      await SunmiPrinter.lineWrap(1);
+      await SunmiPrinter.setAlignment(1);
+      await SunmiPrinter.printQRCode(bookingId);
     }
 
     if (operationalTimings != null && operationalTimings.isNotEmpty) {
@@ -4197,6 +4204,26 @@ class UniversalPrintHelper {
       }
     }
 
+    if (bookingId.isNotEmpty && isEntryReceipt) {
+      int storeLen = bookingId.length + 3;
+      int storePL = storeLen % 256;
+      int storePH = storeLen ~/ 256;
+
+      bytes += [0x1B, 0x61, 0x01]; // ESC a 1 (Centered)
+      // QR Code: Select model 2
+      bytes += [0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00];
+      // QR Code: Set size to 5
+      bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05];
+      // QR Code: Set error correction to Q (25%)
+      bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x32];
+      // QR Code: Store data
+      bytes += [0x1D, 0x28, 0x6B, storePL, storePH, 0x31, 0x50, 0x30];
+      bytes += bookingId.codeUnits;
+      // QR Code: Print data
+      bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30];
+      bytes += [0x0A]; // Line feed
+    }
+
     if (operationalTimings != null && operationalTimings.isNotEmpty) {
       bytes += [0x1B, 0x61, 0x01]; // ESC a 1 (Centered)
       bytes += 'Timings : $operationalTimings'.codeUnits;
@@ -4300,19 +4327,27 @@ class UniversalPrintHelper {
 
       String? operationalTimings;
       try {
-        final response = await http.get(
-          Uri.parse('${ApiConfig.baseUrl}vendor/fetchbusinesshours/$vendorId'),
-        ).timeout(const Duration(seconds: 3));
+        final response = await http
+            .get(
+              Uri.parse(
+                '${ApiConfig.baseUrl}vendor/fetchbusinesshours/$vendorId',
+              ),
+            )
+            .timeout(const Duration(seconds: 3));
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (data['businessHours'] != null) {
             final List businessHours = data['businessHours'];
             final today = DateFormat('EEEE').format(DateTime.now());
             final todayTiming = businessHours.firstWhere(
-              (b) => (b['day'] ?? '').toString().toLowerCase() == today.toLowerCase(),
+              (b) =>
+                  (b['day'] ?? '').toString().toLowerCase() ==
+                  today.toLowerCase(),
               orElse: () => null,
             );
-            if (todayTiming != null && todayTiming['openTime'] != null && todayTiming['closeTime'] != null) {
+            if (todayTiming != null &&
+                todayTiming['openTime'] != null &&
+                todayTiming['closeTime'] != null) {
               String formatTime(String t) {
                 try {
                   final p = t.split(':');
@@ -4320,9 +4355,13 @@ class UniversalPrintHelper {
                   String ampm = h >= 12 ? 'PM' : 'AM';
                   int h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
                   return '${h12.toString().padLeft(2, '0')}:${p[1]} $ampm';
-                } catch (_) { return t; }
+                } catch (_) {
+                  return t;
+                }
               }
-              operationalTimings = '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
+
+              operationalTimings =
+                  '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
             }
           }
         }
@@ -4357,6 +4396,7 @@ class UniversalPrintHelper {
             instantParkingReceipt: instantParkingReceipt,
             valetCharge: valetCharge,
             operationalTimings: operationalTimings,
+            isEntryReceipt: formattedDuration.isEmpty,
           );
         } else {
           _clearPrinterCache();
@@ -4385,6 +4425,7 @@ class UniversalPrintHelper {
             instantParkingReceipt: instantParkingReceipt,
             valetCharge: valetCharge,
             operationalTimings: operationalTimings,
+            isEntryReceipt: formattedDuration.isEmpty,
           );
         } else {
           _clearPrinterCache();

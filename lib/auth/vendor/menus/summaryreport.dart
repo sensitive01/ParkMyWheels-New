@@ -645,7 +645,7 @@ class _SummaryReportScreenState extends State<SummaryReportScreen>
               _isLoading
                   ? const Center(child: LoadingGif())
                   : Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
                     child: Column(
                       children: [
                         Row(
@@ -895,7 +895,7 @@ class _SummaryReportScreenState extends State<SummaryReportScreen>
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
       itemCount: _pastReports.length,
       itemBuilder: (context, index) {
         final report = _pastReports[index];

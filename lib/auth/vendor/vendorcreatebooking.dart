@@ -1,3 +1,4 @@
+import 'package:mywheels/auth/vendor/qrcodeallowparking.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -2159,10 +2160,16 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
       String? operationalTimings;
       try {
-        print('DEBUG PRINT: Starting fetchbusinesshours for vendorid = ${widget.vendorid}');
-        final response = await http.get(
-          Uri.parse('${ApiConfig.baseUrl}vendor/fetchbusinesshours/${widget.vendorid}'),
-        ).timeout(const Duration(seconds: 3));
+        print(
+          'DEBUG PRINT: Starting fetchbusinesshours for vendorid = ${widget.vendorid}',
+        );
+        final response = await http
+            .get(
+              Uri.parse(
+                '${ApiConfig.baseUrl}vendor/fetchbusinesshours/${widget.vendorid}',
+              ),
+            )
+            .timeout(const Duration(seconds: 3));
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           print('DEBUG PRINT: BUSINESS HOURS DATA = $data');
@@ -2170,10 +2177,14 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             final List businessHours = data['businessHours'];
             final today = DateFormat('EEEE').format(DateTime.now());
             final todayTiming = businessHours.firstWhere(
-              (b) => (b['day'] ?? '').toString().toLowerCase() == today.toLowerCase(),
+              (b) =>
+                  (b['day'] ?? '').toString().toLowerCase() ==
+                  today.toLowerCase(),
               orElse: () => null,
             );
-            if (todayTiming != null && todayTiming['openTime'] != null && todayTiming['closeTime'] != null) {
+            if (todayTiming != null &&
+                todayTiming['openTime'] != null &&
+                todayTiming['closeTime'] != null) {
               String formatTime(String t) {
                 try {
                   final p = t.split(':');
@@ -2181,9 +2192,13 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                   String ampm = h >= 12 ? 'PM' : 'AM';
                   int h12 = h == 0 ? 12 : (h > 12 ? h - 12 : h);
                   return '${h12.toString().padLeft(2, '0')}:${p[1]} $ampm';
-                } catch (_) { return t; }
+                } catch (_) {
+                  return t;
+                }
               }
-              operationalTimings = '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
+
+              operationalTimings =
+                  '${formatTime(todayTiming['openTime'])} to ${formatTime(todayTiming['closeTime'])}';
             }
           }
         } else {
@@ -2580,6 +2595,19 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                     },
                   ),
                   actions: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    qrcodeallowpark(vendorid: widget.vendorid),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.qr_code_scanner, color: Colors.green),
+                    ),
                     IconButton(
                       onPressed: () {
                         Navigator.push(
@@ -3034,6 +3062,109 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             },
                           ),
 
+                      // const SizedBox(height: 20),
+                      // _buildSectionHeader("Payment Selection"),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Payment Type",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    _buildRadioOption(
+                                      "On Entry",
+                                      _paymentType == "On Entry",
+                                      (v) => setState(() => _paymentType = v!),
+                                      fontSize: 9,
+                                    ),
+                                    _buildRadioOption(
+                                      "On Exit",
+                                      _paymentType == "On Exit",
+                                      (v) => setState(() => _paymentType = v!),
+                                      fontSize: 9,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Payment Mode",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 4,
+                                  runSpacing: 4,
+                                  children: [
+                                    _buildRadioOption(
+                                      "Online",
+                                      _paymentMode == "Online",
+                                      (v) => setState(() => _paymentMode = v!),
+                                    ),
+                                    _buildRadioOption(
+                                      "Cash",
+                                      _paymentMode == "Cash",
+                                      (v) => setState(() => _paymentMode = v!),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+
+                      Row(
+                        children: [
+                          _buildActionButton(
+                            "Book Now",
+                            Icons.check_circle,
+                            ColorUtils.primarycolor(),
+                            _isLoading ? () {} : _registerParking,
+                            isDisabled: !_bookEnabled,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Book and Print",
+                            Icons.print,
+                            ColorUtils.primarycolor(),
+                            _bookAndPrint,
+                            isDisabled: !(_bookEnabled && _printEnabled),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Print and Exit",
+                            Icons.exit_to_app,
+                            ColorUtils.primarycolor(),
+                            _isLoading ? () {} : _printAndExit,
+                            isDisabled: !(_printEnabled && _exitEnabled),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      if (_paymentMode == 'Online') _buildInlineUpiQr(),
+                      const SizedBox(height: 10),
                       const SizedBox(height: 10),
                       Row(
                         children: [
@@ -3340,110 +3471,6 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                           // const SizedBox(height: 10),
                         ],
                       ],
-
-                      // const SizedBox(height: 20),
-                      // _buildSectionHeader("Payment Selection"),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Payment Type",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 4,
-                                  runSpacing: 4,
-                                  children: [
-                                    _buildRadioOption(
-                                      "On Entry",
-                                      _paymentType == "On Entry",
-                                      (v) => setState(() => _paymentType = v!),
-                                      fontSize: 9,
-                                    ),
-                                    _buildRadioOption(
-                                      "On Exit",
-                                      _paymentType == "On Exit",
-                                      (v) => setState(() => _paymentType = v!),
-                                      fontSize: 9,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Payment Mode",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 4,
-                                  runSpacing: 4,
-                                  children: [
-                                    _buildRadioOption(
-                                      "Online",
-                                      _paymentMode == "Online",
-                                      (v) => setState(() => _paymentMode = v!),
-                                    ),
-                                    _buildRadioOption(
-                                      "Cash",
-                                      _paymentMode == "Cash",
-                                      (v) => setState(() => _paymentMode = v!),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-
-                      Row(
-                        children: [
-                          _buildActionButton(
-                            "Book Now",
-                            Icons.check_circle,
-                            ColorUtils.primarycolor(),
-                            _isLoading ? () {} : _registerParking,
-                            isDisabled: !_bookEnabled,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildActionButton(
-                            "Book and Print",
-                            Icons.print,
-                            ColorUtils.primarycolor(),
-                            _bookAndPrint,
-                            isDisabled: !(_bookEnabled && _printEnabled),
-                          ),
-                          const SizedBox(width: 8),
-                          _buildActionButton(
-                            "Print and Exit",
-                            Icons.exit_to_app,
-                            ColorUtils.primarycolor(),
-                            _isLoading ? () {} : _printAndExit,
-                            isDisabled: !(_printEnabled && _exitEnabled),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      if (_paymentMode == 'Online') _buildInlineUpiQr(),
-                      const SizedBox(height: 10),
                     ],
                   ),
                 ),

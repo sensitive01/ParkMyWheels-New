@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -20,9 +21,12 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../customer/dummypages/drawermyspace.dart' hide ParkingEntry;
-import '../customer/dummypages/myspaceeditslotchargesamenties.dart' show ParkingEntry;
+import '../customer/dummypages/myspaceeditslotchargesamenties.dart'
+    show ParkingEntry;
 import 'bookings.dart';
 import 'menusscreen.dart';
+import 'package:mywheels/auth/vendor/paytimeamount.dart';
+import 'package:mywheels/auth/vendor/vendorcreatebooking.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -34,7 +38,8 @@ class qrcodeallowpark extends StatefulWidget {
   _qrcodeallowparkState createState() => _qrcodeallowparkState();
 }
 
-class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingObserver, RouteAware {
+class _qrcodeallowparkState extends State<qrcodeallowpark>
+    with WidgetsBindingObserver, RouteAware {
   String? _menuImageUrl;
   int _selectedIndex = 2;
   bool isCameraPermissionGranted = false;
@@ -107,9 +112,9 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
       }
     } catch (e) {
       if (!_isDisposed && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to start camera: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to start camera: $e')));
       }
     }
   }
@@ -121,20 +126,23 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
       // Show explanation dialog if permission was denied before
       final shouldRequest = await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Camera Permission Required'),
-          content: const Text('MyWheels needs camera access to scan QR codes'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Camera Permission Required'),
+              content: const Text(
+                'MyWheels needs camera access to scan QR codes',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
       );
 
       if (shouldRequest != true) {
@@ -157,25 +165,28 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
       if (!mounted) return;
       await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Permission Required'),
-          content: const Text('Please enable camera access in app settings'),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                openAppSettings();
-              },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: ColorUtils.primarycolor(),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Permission Required'),
+              content: const Text(
+                'Please enable camera access in app settings',
               ),
-              child: const Text('Open Settings'),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    openAppSettings();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: ColorUtils.primarycolor(),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  child: const Text('Open Settings'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   }
@@ -247,7 +258,9 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Camera not initialized or permission not granted')),
+        const SnackBar(
+          content: Text('Camera not initialized or permission not granted'),
+        ),
       );
     }
   }
@@ -301,10 +314,11 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
         await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookingDetailsPage(
-              bookingId: qrCode,
-              vendorid: widget.vendorid,
-            ),
+            builder:
+                (context) => BookingDetailsPage(
+                  bookingId: qrCode,
+                  vendorid: widget.vendorid,
+                ),
           ),
         ).then((_) {
           if (mounted && isCameraPermissionGranted) {
@@ -341,12 +355,13 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
 
     return Scaffold(
       backgroundColor: ColorUtils.secondarycolor(),
-      appBar: AppBar(titleSpacing: 15,
+      appBar: AppBar(
+        titleSpacing: 15,
         automaticallyImplyLeading: false,
         backgroundColor: ColorUtils.secondarycolor(),
         title: Text(
           'Entry Scan',
-          style: GoogleFonts.poppins(color: Colors.black,fontSize: 18),
+          style: GoogleFonts.poppins(color: Colors.black, fontSize: 18),
         ),
         actions: [
           IconButton(
@@ -365,51 +380,51 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
           children: [
             if (isCameraPermissionGranted && _isControllerInitialized)
               MobileScanner(
-              controller: cameraController,
-              onDetect: _handleBarcode,
-            )
-          else
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      isCameraPermissionGranted
-                          ? 'Camera initialization failed'
-                          : 'Camera access is required to scan QR codes',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      await requestCameraPermission();
-                      if (isCameraPermissionGranted && !isScannerRunning) {
-                        await _startScanner();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                        side: BorderSide(color: ColorUtils.primarycolor()),
+                controller: cameraController,
+                onDetect: _handleBarcode,
+              )
+            else
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        isCameraPermissionGranted
+                            ? 'Camera initialization failed'
+                            : 'Camera access is required to scan QR codes',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      backgroundColor: Colors.white,
-                      foregroundColor: ColorUtils.primarycolor(),
-                      elevation: 2,
                     ),
-                    child: const Text('Grant Camera Permission'),
-                  ),
-                  if (_isPermanentlyDenied)
-                    const TextButton(
-                      onPressed: openAppSettings,
-                      child: Text('Open Settings to Enable'),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await requestCameraPermission();
+                        if (isCameraPermissionGranted && !isScannerRunning) {
+                          await _startScanner();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          side: BorderSide(color: ColorUtils.primarycolor()),
+                        ),
+                        backgroundColor: Colors.white,
+                        foregroundColor: ColorUtils.primarycolor(),
+                        elevation: 2,
+                      ),
+                      child: const Text('Grant Camera Permission'),
                     ),
-                ],
+                    if (_isPermanentlyDenied)
+                      const TextButton(
+                        onPressed: openAppSettings,
+                        child: Text('Open Settings to Enable'),
+                      ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -421,13 +436,18 @@ class _qrcodeallowparkState extends State<qrcodeallowpark> with WidgetsBindingOb
     );
   }
 }
+
 // Placeholder for RightToLeftPageRoute (replace with your actual implementation)
 class RightToLeftPageRoute extends MaterialPageRoute {
   RightToLeftPageRoute({required super.builder});
 
   @override
   Widget buildTransitions(
-      BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(1.0, 0.0),
@@ -442,7 +462,11 @@ class BookingDetailsPage extends StatefulWidget {
   final String bookingId;
   final String vendorid;
 
-  const BookingDetailsPage({super.key, required this.bookingId, required this.vendorid});
+  const BookingDetailsPage({
+    super.key,
+    required this.bookingId,
+    required this.vendorid,
+  });
 
   @override
   _BookingDetailsPageState createState() => _BookingDetailsPageState();
@@ -464,6 +488,13 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
   List<Services> services = []; // Add your services list
   int selectedTabIndex = 0; // Track selected tab index
   double containerHeight = 500.0; // Define the containerHeight variable
+
+  bool _isExiting = false;
+  bool _isCheckingExit = false;
+
+  static const Duration _printTimeout = Duration(seconds: 18);
+  static const Duration _apiTimeout = Duration(seconds: 20);
+  static const Duration _exitApiTimeout = Duration(seconds: 30);
 
   IconData _getAmenityIcon(String amenity) {
     switch (amenity.toLowerCase()) {
@@ -506,11 +537,18 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       if (bookingDetails != null && bookingDetails!['parkingDate'] != null) {
         try {
           print('Raw parkingDate: ${bookingDetails!['parkingDate']}');
-          parkingDate = DateFormat('dd-MM-yyyy').parse(bookingDetails!['parkingDate']);
+          parkingDate = DateFormat(
+            'dd-MM-yyyy',
+          ).parse(bookingDetails!['parkingDate']);
           print('Parsed parkingDate: $parkingDate');
-          print('Today year: ${today.year}, month: ${today.month}, day: ${today.day}');
-          print('ParkingDate year: ${parkingDate!.year}, month: ${parkingDate!.month}, day: ${parkingDate!.day}');
-          isTodayParking = parkingDate != null &&
+          print(
+            'Today year: ${today.year}, month: ${today.month}, day: ${today.day}',
+          );
+          print(
+            'ParkingDate year: ${parkingDate!.year}, month: ${parkingDate!.month}, day: ${parkingDate!.day}',
+          );
+          isTodayParking =
+              parkingDate != null &&
               today.year == parkingDate!.year &&
               today.month == parkingDate!.month &&
               today.day == parkingDate!.day;
@@ -528,7 +566,9 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       }
 
       if (bookingDetails != null && bookingDetails!['vehicleType'] != null) {
-        print('Calling fetchChargesData with vehicleType: ${bookingDetails!['vehicleType']}');
+        print(
+          'Calling fetchChargesData with vehicleType: ${bookingDetails!['vehicleType']}',
+        );
         fetchChargesData(widget.vendorid, bookingDetails!['vehicleType']);
       } else {
         print('vehicleType is missing, cannot fetch charges');
@@ -545,8 +585,11 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     _requestLocationPermission();
     _fetchVendorData();
   }
+
   Future<AmenitiesAndParking> fetchAmenitiesAndParking(String vendorId) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}vendor/getamenitiesdata/$vendorId');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}vendor/getamenitiesdata/$vendorId',
+    );
     print('Fetching amenities from: $url');
     try {
       final response = await http.get(url);
@@ -562,20 +605,23 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           throw Exception('AmenitiesData is null in response');
         }
       } else {
-        throw Exception('Failed to load amenities data: ${response.statusCode}');
+        throw Exception(
+          'Failed to load amenities data: ${response.statusCode}',
+        );
       }
     } catch (e) {
       print('Error fetching amenities: $e');
       throw Exception('Error fetching amenities data: $e');
     }
   }
+
   Future<void> fetchChargesData(String vendorId, String selectedCarType) async {
     setState(() {
       isLoading = true;
     });
-    await Future.delayed(const Duration(seconds: 2));
     try {
-      final url = '${ApiConfig.baseUrl}vendor/fetchbookcharge/$vendorId/$selectedCarType';
+      final url =
+          '${ApiConfig.baseUrl}vendor/fetchbookcharge/$vendorId/$selectedCarType';
       print('Fetching charges from: $url');
       final response = await http.get(Uri.parse(url));
       print('Charges response status: ${response.statusCode}');
@@ -590,9 +636,12 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
             charges = List<Map<String, dynamic>>.from(data);
           });
           print('Charges loaded as list: $charges');
-        } else if (data['vendor'] != null && data['vendor']['charges'] != null) {
+        } else if (data['vendor'] != null &&
+            data['vendor']['charges'] != null) {
           setState(() {
-            charges = List<Map<String, dynamic>>.from(data['vendor']['charges']);
+            charges = List<Map<String, dynamic>>.from(
+              data['vendor']['charges'],
+            );
           });
           print('Charges loaded from vendor: $charges');
         } else {
@@ -602,7 +651,9 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           });
         }
       } else {
-        print('Failed to load charges data. Status Code: ${response.statusCode}');
+        print(
+          'Failed to load charges data. Status Code: ${response.statusCode}',
+        );
         setState(() {
           charges = [];
         });
@@ -618,10 +669,12 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       });
     }
   }
+
   Future<void> _getCurrentLocation() async {
     try {
       _currentPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+        desiredAccuracy: LocationAccuracy.high,
+      );
 
       if (_vendor != null) {
         double distance = haversineDistance(
@@ -644,7 +697,8 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
-    double a = sin(dLat / 2) * sin(dLat / 2) +
+    double a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(_degreesToRadians(lat1)) *
             cos(_degreesToRadians(lat2)) *
             sin(dLon / 2) *
@@ -657,7 +711,6 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
   double _degreesToRadians(double degrees) {
     return degrees * (pi / 180);
   }
-
 
   Future<void> _requestLocationPermission() async {
     PermissionStatus status = await Permission.location.status;
@@ -677,12 +730,11 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
 
   String apiUrl = '${ApiConfig.baseUrl}vendor/fetch-all-vendor-data';
 
-// Function to fetch vendor data
+  // Function to fetch vendor data
   Future<List<Map<String, dynamic>>> fetchVendors() async {
     setState(() {
       isLoading = true; // Set loading to true while fetching data
     });
-    await Future.delayed(const Duration(seconds: 2));
     try {
       final response = await http.get(Uri.parse(apiUrl));
       print('Response status: ${response.statusCode}');
@@ -699,25 +751,30 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
             // Attempt to parse latitude and longitude
             try {
               latitude = double.tryParse(
-                  vendor['latitude'] ?? '0.0'); // Use '0.0' as default
+                vendor['latitude'] ?? '0.0',
+              ); // Use '0.0' as default
               longitude = double.tryParse(
-                  vendor['longitude'] ?? '0.0'); // Use '0.0' as default
+                vendor['longitude'] ?? '0.0',
+              ); // Use '0.0' as default
             } catch (e) {
               print('Error parsing latitude/longitude: $e');
             }
 
             return {
               'id': vendor['_id'] ?? '',
-              'name': vendor['vendorName'] ??
+              'name':
+                  vendor['vendorName'] ??
                   'Unknown Vendor', // Default name if null
               'latitude': latitude ?? 0.0, // Default to 0.0 if parsing fails
               'longitude': longitude ?? 0.0, // Default to 0.0 if parsing fails
               'image': vendor['image'] ?? '', // Default to empty string if null
               'address':
-              vendor['address'] ?? 'No Address', // Default address if null
-              'contactNo': vendor['contactNo'] ??
+                  vendor['address'] ?? 'No Address', // Default address if null
+              'contactNo':
+                  vendor['contactNo'] ??
                   'No Contact', // Default contact if null
-              'landMark': vendor['landMark'] ??
+              'landMark':
+                  vendor['landMark'] ??
                   'No Landmark', // Default landmark if null
             };
           }).toList();
@@ -739,8 +796,6 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     }
   }
 
-
-
   Future<void> _requestPermissionAgain() async {
     PermissionStatus status = await Permission.location.request();
     if (status.isGranted) {
@@ -753,9 +808,9 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
   }
 
   Future<void> _fetchVendorData() async {
-    await Future.delayed(const Duration(seconds: 2));
     try {
-      final url = '${ApiConfig.baseUrl}vendor/fetch-vendor-data?id=${widget.vendorid}';
+      final url =
+          '${ApiConfig.baseUrl}vendor/fetch-vendor-data?id=${widget.vendorid}';
       print('Fetching vendor data from: $url');
       final response = await http.get(Uri.parse(url));
       print('Vendor data response status: ${response.statusCode}');
@@ -775,16 +830,18 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
 
             // Fetch amenities and parking
             print('Fetching amenities for vendor ID: ${_vendor!.id}');
-            fetchAmenitiesAndParking(_vendor!.id).then((amenitiesAndParking) {
-              setState(() {
-                amenities = amenitiesAndParking.amenities;
-                services = amenitiesAndParking.services;
-              });
-              print('Amenities loaded: $amenities');
-              print('Services loaded: $services');
-            }).catchError((error) {
-              print('Error fetching amenities: $error');
-            });
+            fetchAmenitiesAndParking(_vendor!.id)
+                .then((amenitiesAndParking) {
+                  setState(() {
+                    amenities = amenitiesAndParking.amenities;
+                    services = amenitiesAndParking.services;
+                  });
+                  print('Amenities loaded: $amenities');
+                  print('Services loaded: $services');
+                })
+                .catchError((error) {
+                  print('Error fetching amenities: $error');
+                });
           } catch (e) {
             print('Error parsing Vendor.fromJson: $e');
             print('Vendor JSON data: ${data['data']}');
@@ -797,18 +854,23 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           throw Exception(data['message'] ?? 'Unknown error occurred');
         }
       } else {
-        throw Exception('Failed to load vendor data, status code: ${response.statusCode}');
+        throw Exception(
+          'Failed to load vendor data, status code: ${response.statusCode}',
+        );
       }
     } catch (error) {
       print('Exception in _fetchVendorData: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load vendor data. Please try again later.')),
+        const SnackBar(
+          content: Text('Failed to load vendor data. Please try again later.'),
+        ),
       );
       setState(() {
         isLoading = false;
       });
     }
   }
+
   Future<void> _fetchBookingDetails() async {
     try {
       final url = '${ApiConfig.baseUrl}vendor/fetchbookid/${widget.bookingId}';
@@ -835,10 +897,13 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
         }
       } else {
         setState(() {
-          errorMessage = 'Wrong QR code please try again (Status: ${response.statusCode})';
+          errorMessage =
+              'Wrong QR code please try again (Status: ${response.statusCode})';
           isLoading = false;
         });
-        print('Failed to fetch booking details. Status: ${response.statusCode}');
+        print(
+          'Failed to fetch booking details. Status: ${response.statusCode}',
+        );
       }
     } catch (error) {
       setState(() {
@@ -848,25 +913,25 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       print('Exception in _fetchBookingDetails: $error');
     }
   }
+
   Future<void> _allowParking() async {
     try {
       final now = DateTime.now();
-      final parkedDate = DateFormat('dd-MM-yyyy').format(now); // e.g., "07-07-2025"
+      final parkedDate = DateFormat(
+        'dd-MM-yyyy',
+      ).format(now); // e.g., "07-07-2025"
       final parkedTime = DateFormat('hh:mm a').format(now); // e.g., "04:54 PM"
       final response = await http.put(
         Uri.parse('${ApiConfig.baseUrl}vendor/qrallowpark/${widget.bookingId}'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'parkedDate': parkedDate,
-          'parkedTime': parkedTime,
-        }),
+        body: json.encode({'parkedDate': parkedDate, 'parkedTime': parkedTime}),
       );
 
       final data = json.decode(response.body);
       if (response.statusCode == 200 && data['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(data['message'])));
         // Navigate back after successful parking
         Navigator.pop(context);
       } else {
@@ -876,7 +941,9 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error allowing parking. Please try again.')),
+        const SnackBar(
+          content: Text('Error allowing parking. Please try again.'),
+        ),
       );
     }
   }
@@ -890,76 +957,80 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       backgroundColor: ColorUtils.secondarycolor(),
 
       body: SafeArea(
-        child: isLoading
-            ? const LoadingGif()
-            : errorMessage != null
-            ? Center(
-          child: Column(
-
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Invalid QrCode please try again",
-              style: GoogleFonts.poppins(fontSize: 16, color: Colors.red),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              height: 35,
-              width: 120,
-              decoration: BoxDecoration(
-                color: ColorUtils.primarycolor(),
-                borderRadius: BorderRadius.circular(5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 3,
-                    offset: Offset(0, 2),
+        child:
+            errorMessage != null
+                ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Invalid QrCode please try again",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.red,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        height: 35,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: ColorUtils.primarycolor(),
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 3,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Navigate back to the QR code scanner page
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => qrcodeallowpark(
+                                      vendorid: widget.vendorid,
+                                    ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Colors
+                                    .transparent, // Transparent to show container color
+                            shadowColor:
+                                Colors
+                                    .transparent, // Remove button shadow (handled by boxShadow)
+                            padding: EdgeInsets.zero, // Remove default padding
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Scanning Again',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize:
+                                    12, // Adjust font size to fit height 25
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigate back to the QR code scanner page
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => qrcodeallowpark(vendorid: widget.vendorid),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent, // Transparent to show container color
-                  shadowColor: Colors.transparent,     // Remove button shadow (handled by boxShadow)
-                  padding: EdgeInsets.zero,            // Remove default padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    'Scanning Again',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 12, // Adjust font size to fit height 25
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      )
-          : Column(
-        children: [
-          Expanded(
-            child: _buildDetailsTab(),
-          ),
-        ],
-      ),
+                )
+                : Column(children: [Expanded(child: _buildDetailsTab())]),
       ),
     );
   }
+
   Widget _buildDetailsTab() {
     print('=== Debugging Allow Parking Button ===');
     print('bookingDetails: $bookingDetails');
@@ -968,11 +1039,19 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     print('widget.vendorid: ${widget.vendorid}');
     print('isTodayParking: $isTodayParking');
     print('Condition 1 (bookingDetails != null): ${bookingDetails != null}');
-    print('Condition 2 (status check): ${(bookingDetails != null && (bookingDetails!['status'] == 'PENDING' || bookingDetails!['status'] == 'Approved'))}');
-    print('Condition 3 (vendorId match): ${(bookingDetails != null && bookingDetails!['vendorId'].toString() == widget.vendorid)}');
-    print('All conditions met: ${(bookingDetails != null && (bookingDetails!['status'] == 'PENDING' || bookingDetails!['status'] == 'Approved') && bookingDetails!['vendorId'].toString() == widget.vendorid && isTodayParking)}');
+    print(
+      'Condition 2 (status check): ${(bookingDetails != null && (bookingDetails!['status'] == 'PENDING' || bookingDetails!['status'] == 'Approved'))}',
+    );
+    print(
+      'Condition 3 (vendorId match): ${(bookingDetails != null && bookingDetails!['vendorId'].toString() == widget.vendorid)}',
+    );
+    print(
+      'All conditions met: ${(bookingDetails != null && (bookingDetails!['status'] == 'PENDING' || bookingDetails!['status'] == 'Approved') && bookingDetails!['vendorId'].toString() == widget.vendorid && isTodayParking)}',
+    );
     print('=====================================');
-    return CustomScrollView(slivers: [
+    return CustomScrollView(
+      slivers: [
+        /*
       SliverAppBar(
         expandedHeight: 180.0,
         pinned: true,
@@ -1049,381 +1128,807 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           ),
         ),
       ),
-      SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_vendor != null) ...[
-
-              Column(
-                children: [
-                  Column(
-                    children: [
-                      Container(
-                        // color: ColorUtils.primarycolor(),
-                        padding:
-                        const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: ColorUtils
-                              .primarycolor(), // Ensure the background color is set
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(15),
-                            bottomRight: Radius.circular(15),
+      */
+        SliverAppBar(
+          pinned: true,
+          backgroundColor: ColorUtils.primarycolor(),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_vendor != null) ...[
+                Column(
+                  children: [
+                    Column(
+                      children: [
+                        Container(
+                          // color: ColorUtils.primarycolor(),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color:
+                                ColorUtils.primarycolor(), // Ensure the background color is set
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(15),
+                              bottomRight: Radius.circular(15),
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .start, // Aligns everything to the top
-                          children: [
-                            Expanded(
-                              // Ensures the column takes only necessary space
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment
-                                    .start, // Aligns text to the left
-                                mainAxisSize: MainAxisSize
-                                    .min, // Reduces extra space
-                                children: [
-                                  const SizedBox(height: 5),
-                                  SizedBox(
-                                    child: Text(
-                                      _vendor?.vendorName ?? '',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                          child: Row(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start, // Aligns everything to the top
+                            children: [
+                              Expanded(
+                                // Ensures the column takes only necessary space
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .start, // Aligns text to the left
+                                  mainAxisSize:
+                                      MainAxisSize.min, // Reduces extra space
+                                  children: [
+                                    const SizedBox(height: 5),
+                                    SizedBox(
+                                      child: Text(
+                                        _vendor?.vendorName ?? '',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          height: 1.2,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                      height: 0), // Adjusted spacing
-                                  Text(
-                                    _vendor!.address,
-                                    style: GoogleFonts.poppins(
+                                    const SizedBox(
+                                      height: 0,
+                                    ), // Adjusted spacing
+                                    Text(
+                                      _vendor!.address,
+                                      style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         height: 1.2,
-                                        color: Colors.white),
-                                  ),
-                                  const SizedBox(height: 5),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                const SizedBox(height: 5),
-                                Padding(
-                                  padding: const EdgeInsets.all(5.0),
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      final double latitude =
-                                          double.tryParse(
-                                              _vendor?.latitude ??
-                                                  '0') ??
-                                              0.0;
-                                      final double longitude =
-                                          double.tryParse(
-                                              _vendor?.longitude ??
-                                                  '0') ??
-                                              0.0;
-
-                                      final String googleMapsUrl =
-                                          'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
-
-                                      if (await canLaunch(
-                                          googleMapsUrl)) {
-                                        await launch(googleMapsUrl);
-                                      } else {
-                                        debugPrint(
-                                            "Could not launch $googleMapsUrl");
-                                      }
-                                    },
-                                    child: Container(
-                                      height: 20,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5),
-                                      decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius:
-                                        BorderRadius.circular(3),
-                                        border: Border.all(
-                                            color: Colors.white,
-                                            width: 1.2),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            '${_vendor?.distance != null ? _vendor!.distance?.toStringAsFixed(2) : 'N/A'} km',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Icon(Icons.telegram,
-                                              size: 16.0,
-                                              color: Colors.blue),
-                                        ],
                                       ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 5),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      // const SizedBox(height: 5), // Reduced spacing
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: SizedBox(
-                      height: 200,
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            left: 0,
-                            top: 10,
-                            right: 0,
-                            child: Container(
-                              height: 190, // Set the appropriate height
-                              decoration: BoxDecoration(
-                                color: ColorUtils.primarycolor(),
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    spreadRadius: 1,
-                                    blurRadius: 2,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
                               ),
-                              alignment: Alignment.bottomCenter,
-                              child:  const Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                              Column(
                                 children: [
-                                  // Text(
-                                  //   "OTP: ", // Add the "OTP" label
-                                  //   style: GoogleFonts.poppins(
-                                  //     fontWeight:
-                                  //     FontWeight.bold,
-                                  //     color: Colors.white,
-                                  //     fontSize:
-                                  //     16, // Adjust the font size as needed
-                                  //   ),
-                                  // ),
+                                  const SizedBox(height: 5),
+                                  Padding(
+                                    padding: const EdgeInsets.all(5.0),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final double latitude =
+                                            double.tryParse(
+                                              _vendor?.latitude ?? '0',
+                                            ) ??
+                                            0.0;
+                                        final double longitude =
+                                            double.tryParse(
+                                              _vendor?.longitude ?? '0',
+                                            ) ??
+                                            0.0;
 
+                                        final String googleMapsUrl =
+                                            'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude';
 
-                                ],
-                              ),
-                            ),
-                          ),
-                          Column(
-                            children: [
-
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(5),
-                                    topRight: Radius.circular(5),
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: Radius.circular(20),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 2,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      color: Colors.white,
-                                      child: Align(
-                                        alignment: Alignment.center, // Aligns content to the left
-                                        child: Text(
-                                          "Booking details",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            // decoration: TextDecoration.underline, // Add underline here
-                                            decorationColor: Colors.black, // Optional: Set the color of the underline
-                                            // Optional: Set the thickness of the underline
+                                        if (await canLaunch(googleMapsUrl)) {
+                                          await launch(googleMapsUrl);
+                                        } else {
+                                          debugPrint(
+                                            "Could not launch $googleMapsUrl",
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        height: 20,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            3,
                                           ),
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 1.2,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '${_vendor?.distance != null ? _vendor!.distance?.toStringAsFixed(2) : 'N/A'} km',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Icon(
+                                              Icons.telegram,
+                                              size: 16.0,
+                                              color: Colors.blue,
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    Divider(
-                                      thickness: 0.5, // Set the thickness of the divider
-                                      color: ColorUtils.primarycolor(), // Set the color of the divider
-                                    ),
-                                    // Container(
-                                    // padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-                                    // decoration: BoxDecoration(
-                                    // border: Border(
-                                    // bottom: BorderSide(
-                                    // color: ColorUtils.primarycolor(), // Replace with ColorUtils.primarycolor()
-                                    // width: 0.5,
-                                    // ),
-                                    // ),
-                                    // borderRadius: const BorderRadius.only(
-                                    // topLeft: Radius.circular(5.0),
-                                    // topRight: Radius.circular(5.0),
-                                    // ),
-                                    // ),
-                                    // child: Row(
-                                    // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    // children: [
-                                    //   Padding(
-                                    //     padding: const EdgeInsets.only(right: 12.0),
-                                    //     child: Text(
-                                    //       widget.vehiclenumber,
-                                    //       style: GoogleFonts.poppins(
-                                    //         color:ColorUtils.primarycolor(),
-                                    //         fontWeight: FontWeight.bold,
-                                    //       ),
-                                    //     ),
-                                    //   ),
-                                    // const Spacer(),
-                                    // Padding(
-                                    // padding: const EdgeInsets.only(right: 12.0),
-                                    // child: Text(
-                                    // widget.status,
-                                    // style: GoogleFonts.poppins(
-                                    // color:ColorUtils.primarycolor(),
-                                    // fontWeight: FontWeight.bold,
-                                    // ),
-                                    // ),
-                                    // ),
-                                    //
-                                    // ],
-                                    // ),
-                                    // ),
-                                    Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        ClipPath(
-                                          clipper: TicketClipper(),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(5),
-                                            decoration: const BoxDecoration(),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  // decoration: BoxDecoration(
-                                                  //   color: Colors.white,
-                                                  //   borderRadius: BorderRadius.circular(16),
-                                                  //   boxShadow: const [
-                                                  //     BoxShadow(
-                                                  //       color: Colors.black12,
-                                                  //       blurRadius: 4,
-                                                  //     ),
-                                                  //   ],
-                                                  // ),
-                                                  padding:
-                                                  const EdgeInsets.all(10),
-                                                  child: PrettyQr(
-                                                    data: widget.bookingId,
-                                                    size: 100,
-                                                    roundEdges: true,
-                                                    errorCorrectLevel:
-                                                    QrErrorCorrectLevel.H,
-                                                    elementColor: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                            width:
-                                            2), // Spacing between QR and details
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-
-                                              const SizedBox(
-                                                  height:
-                                                  13),
-                                              Text(
-                                                "Vehicle Type: ${bookingDetails!['vehicleNumber'] ?? 'N/A'}",
-
-                                                style: GoogleFonts.poppins(fontSize: 16),
-                                              ),
-                                              Text(
-                                                "Booking date:${bookingDetails!['bookingDate'] ?? 'N/A'}",
-                                                style: GoogleFonts.poppins(fontSize: 11),
-                                              ),
-                                              Text(
-                                                "Parking date: ${bookingDetails!['parkingDate'] ?? 'N/A'}",
-                                                style: GoogleFonts.poppins(fontSize: 11),
-                                              ),
-
-                                              Text(
-                                                "Mobile Number: ${bookingDetails!['mobileNumber'] ?? 'N/A'}'",
-                                                style: GoogleFonts.poppins(fontSize: 11),
-                                              ),
-                                              Text(
-                                                "Status: ${bookingDetails!['status'] ?? 'N/A'}'",
-                                                style: GoogleFonts.poppins(fontSize: 11),
-                                              ),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  // Text(
-                                                  //   ": ${widget.sts}",
-                                                  //   style: GoogleFonts.poppins(fontSize: 11),
-                                                  // ),
-                                                  Text(
-                                                    "Booking Type: ${bookingDetails!['sts'] == 'Subscription' ? 'Monthly' : (bookingDetails!['bookType'] == '24 Hours' ? 'Full Day' : 'Hourly')}",
-                                                    style: GoogleFonts.poppins(fontSize: 11),
-                                                  ),
-
-                                                ],
-                                              )
-
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
+                        // const SizedBox(height: 5), // Reduced spacing
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 8.0,
+                      ),
+                      child: Builder(
+                        builder: (context) {
+                          final parkedDate =
+                              bookingDetails?['parkedDate'] ??
+                              bookingDetails?['parkingDate'] ??
+                              '';
+                          final parkedTime =
+                              bookingDetails?['parkedTime'] ??
+                              bookingDetails?['parkingTime'] ??
+                              '';
+                          DateTime parsedDate = DateTime.now();
+                          if (parkedDate.isNotEmpty && parkedTime.isNotEmpty) {
+                            try {
+                              parsedDate =
+                                  UniversalPrintHelper.tryParseDateTime(
+                                    date: parkedDate,
+                                    time: parkedTime,
+                                  ) ??
+                                  DateTime.now();
+                            } catch (e) {}
+                          }
+                          var duration = DateTime.now().difference(parsedDate);
+                          if (duration.isNegative) duration = Duration.zero;
+
+                          String twoDigits(int n) =>
+                              n.toString().padLeft(2, "0");
+                          String formattedDuration =
+                              "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}";
+
+                          String daySuffix(int day) {
+                            if (day >= 11 && day <= 13) return 'th';
+                            switch (day % 10) {
+                              case 1:
+                                return 'st';
+                              case 2:
+                                return 'nd';
+                              case 3:
+                                return 'rd';
+                              default:
+                                return 'th';
+                            }
+                          }
+
+                          const monthNames = [
+                            "",
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December",
+                          ];
+                          String hourStr =
+                              parsedDate.hour > 12
+                                  ? (parsedDate.hour - 12).toString().padLeft(
+                                    2,
+                                    '0',
+                                  )
+                                  : (parsedDate.hour == 0
+                                      ? '12'
+                                      : parsedDate.hour.toString().padLeft(
+                                        2,
+                                        '0',
+                                      ));
+                          String minuteStr = parsedDate.minute
+                              .toString()
+                              .padLeft(2, '0');
+                          String period = parsedDate.hour >= 12 ? 'PM' : 'AM';
+                          String formattedDate =
+                              "${parsedDate.day}${daySuffix(parsedDate.day)} ${monthNames[parsedDate.month]} ${parsedDate.year}, $hourStr:$minuteStr $period";
+
+                          return SizedBox(
+                            height: 120,
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 0,
+                                  top: 30,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: ColorUtils.primarycolor(),
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(30),
+                                        bottomRight: Radius.circular(30),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          spreadRadius: 1,
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    alignment: Alignment.bottomCenter,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: Text(
+                                        'Booking on : $formattedDate',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(5),
+                                          topRight: Radius.circular(5),
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(20),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.1,
+                                            ),
+                                            spreadRadius: 1,
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.only(
+                                              left: 14,
+                                              top: 2,
+                                              right: 0.0,
+                                              bottom: 0.0,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                bottom: BorderSide(
+                                                  color:
+                                                      ColorUtils.primarycolor(),
+                                                  width: 0.5,
+                                                ),
+                                              ),
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(
+                                                      5.0,
+                                                    ),
+                                                    topRight: Radius.circular(
+                                                      5.0,
+                                                    ),
+                                                  ),
+                                              color: Colors.grey[200],
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  bookingDetails?['vehicleNumber'] ??
+                                                      'Unknown',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 14,
+                                                    color:
+                                                        ColorUtils.primarycolor(),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                if (bookingDetails != null &&
+                                                    bookingDetails!['status'] ==
+                                                        'PARKED' &&
+                                                    bookingDetails!['vendorId']
+                                                            .toString() ==
+                                                        widget.vendorid)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          top: 3.0,
+                                                          bottom: 5.0,
+                                                        ),
+                                                    child: SizedBox(
+                                                      height: 25,
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(
+                                                                  right: 8.0,
+                                                                ),
+                                                            child: ElevatedButton(
+                                                              onPressed: () async {
+                                                                final String
+                                                                bId =
+                                                                    bookingDetails!['_id']
+                                                                        ?.toString() ??
+                                                                    '';
+                                                                if (bId.isEmpty)
+                                                                  return;
+                                                                String
+                                                                currentAmount =
+                                                                    '0';
+                                                                try {
+                                                                  currentAmount =
+                                                                      await UniversalPrintHelper.getPrintAmountFromAPI(
+                                                                        bId,
+                                                                      );
+                                                                } catch (_) {}
+                                                                await UniversalPrintHelper.printTicket(
+                                                                  context:
+                                                                      context,
+                                                                  vendorName:
+                                                                      bookingDetails!['vendorName'] ??
+                                                                      'Vendor',
+                                                                  bookingId:
+                                                                      bId,
+                                                                  invoiceId:
+                                                                      bookingDetails!['invoiceId']
+                                                                          ?.toString(),
+                                                                  vehicleType:
+                                                                      bookingDetails!['vehicleType'] ??
+                                                                      '',
+                                                                  vehicleNumber:
+                                                                      bookingDetails!['vehicleNumber'] ??
+                                                                      '',
+                                                                  parkingDate:
+                                                                      bookingDetails!['parkingDate'] ??
+                                                                      '',
+                                                                  parkingTime:
+                                                                      bookingDetails!['parkingTime'] ??
+                                                                      '',
+                                                                  amount:
+                                                                      currentAmount,
+                                                                  personName:
+                                                                      bookingDetails!['userName'] ??
+                                                                      bookingDetails!['personName'] ??
+                                                                      '',
+                                                                  valetCharge:
+                                                                      double.tryParse(
+                                                                        bookingDetails!['valetCharge']?.toString() ??
+                                                                            '0',
+                                                                      ) ??
+                                                                      0.0,
+                                                                  mobileNumber:
+                                                                      bookingDetails!['mobileNumber'] ??
+                                                                      '',
+                                                                  vendorId:
+                                                                      bookingDetails!['vendorId']
+                                                                          ?.toString() ??
+                                                                      widget
+                                                                          .vendorid,
+                                                                  bookType:
+                                                                      bookingDetails!['bookingType'] ??
+                                                                      bookingDetails!['bookType'] ??
+                                                                      '',
+                                                                  sts:
+                                                                      bookingDetails!['sts']
+                                                                          ?.toString() ??
+                                                                      '',
+                                                                );
+                                                              },
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                foregroundColor:
+                                                                    ColorUtils.primarycolor(),
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          14,
+                                                                      vertical:
+                                                                          8,
+                                                                    ),
+                                                                minimumSize:
+                                                                    const Size(
+                                                                      0,
+                                                                      0,
+                                                                    ),
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      const BorderRadius.all(
+                                                                        Radius.circular(
+                                                                          5,
+                                                                        ),
+                                                                      ),
+                                                                  side: BorderSide(
+                                                                    color:
+                                                                        ColorUtils.primarycolor(),
+                                                                    width: 0.5,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              child: Row(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  const Icon(
+                                                                    Icons.print,
+                                                                    color:
+                                                                        Colors
+                                                                            .black,
+                                                                    size: 18,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 5,
+                                                                  ),
+                                                                  Text(
+                                                                    'Print',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize:
+                                                                          13,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color:
+                                                                          ColorUtils.primarycolor(),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          if (bookingDetails!['sts']
+                                                                  ?.toString() ==
+                                                              'Instant')
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.only(
+                                                                    right: 8.0,
+                                                                  ),
+                                                              child: ElevatedButton(
+                                                                onPressed:
+                                                                    _isExiting
+                                                                        ? null
+                                                                        : () => _handlePrintAndExit(
+                                                                          bookingDetails!,
+                                                                        ),
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white,
+                                                                  foregroundColor:
+                                                                      ColorUtils.primarycolor(),
+                                                                  padding:
+                                                                      const EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            14,
+                                                                        vertical:
+                                                                            8,
+                                                                      ),
+                                                                  minimumSize:
+                                                                      const Size(
+                                                                        0,
+                                                                        0,
+                                                                      ),
+                                                                  shape: RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        const BorderRadius.all(
+                                                                          Radius.circular(
+                                                                            5,
+                                                                          ),
+                                                                        ),
+                                                                    side: BorderSide(
+                                                                      color:
+                                                                          ColorUtils.primarycolor(),
+                                                                      width:
+                                                                          0.5,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: [
+                                                                    if (_isExiting)
+                                                                      SizedBox(
+                                                                        width:
+                                                                            14,
+                                                                        height:
+                                                                            14,
+                                                                        child: CircularProgressIndicator(
+                                                                          strokeWidth:
+                                                                              2,
+                                                                          valueColor: AlwaysStoppedAnimation<
+                                                                            Color
+                                                                          >(
+                                                                            ColorUtils.primarycolor(),
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    else
+                                                                      const Icon(
+                                                                        Icons
+                                                                            .check_circle_outline,
+                                                                        color:
+                                                                            Colors.black,
+                                                                        size:
+                                                                            18,
+                                                                      ),
+                                                                    const SizedBox(
+                                                                      width: 5,
+                                                                    ),
+                                                                    Text(
+                                                                      _isExiting
+                                                                          ? 'Processing...'
+                                                                          : 'Print & Exit',
+                                                                      style: GoogleFonts.poppins(
+                                                                        fontSize:
+                                                                            13,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        color:
+                                                                            ColorUtils.primarycolor(),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(
+                                                                  right: 8.0,
+                                                                ),
+                                                            child: ElevatedButton(
+                                                              onPressed:
+                                                                  (_isCheckingExit ||
+                                                                          _isExiting)
+                                                                      ? null
+                                                                      : () => _handleExitButtonPressed(
+                                                                        bookingDetails!,
+                                                                      ),
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                foregroundColor:
+                                                                    Colors.red,
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          14,
+                                                                      vertical:
+                                                                          8,
+                                                                    ),
+                                                                minimumSize:
+                                                                    const Size(
+                                                                      0,
+                                                                      0,
+                                                                    ),
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      const BorderRadius.all(
+                                                                        Radius.circular(
+                                                                          5,
+                                                                        ),
+                                                                      ),
+                                                                  side: BorderSide(
+                                                                    color:
+                                                                        ColorUtils.primarycolor(),
+                                                                    width: 0.5,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              child: Row(
+                                                                mainAxisSize:
+                                                                    MainAxisSize
+                                                                        .min,
+                                                                children: [
+                                                                  if (_isCheckingExit)
+                                                                    SizedBox(
+                                                                      width: 14,
+                                                                      height:
+                                                                          14,
+                                                                      child: CircularProgressIndicator(
+                                                                        strokeWidth:
+                                                                            2,
+                                                                        valueColor: AlwaysStoppedAnimation<
+                                                                          Color
+                                                                        >(
+                                                                          ColorUtils.primarycolor(),
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  else
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .qr_code_scanner,
+                                                                      color:
+                                                                          Colors
+                                                                              .black,
+                                                                      size: 18,
+                                                                    ),
+                                                                  const SizedBox(
+                                                                    width: 5,
+                                                                  ),
+                                                                  Text(
+                                                                    _isCheckingExit
+                                                                        ? 'Checking...'
+                                                                        : 'Exit',
+                                                                    style: GoogleFonts.poppins(
+                                                                      fontSize:
+                                                                          13,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color:
+                                                                          Colors
+                                                                              .red,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.all(
+                                                  5.0,
+                                                ),
+                                                child: Container(
+                                                  height: 40,
+                                                  width: 40,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        ColorUtils.primarycolor(),
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                          Radius.circular(20),
+                                                        ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.directions_car,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  RichText(
+                                                    text: TextSpan(
+                                                      text:
+                                                          'Parking Schedule: ',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors.black,
+                                                          ),
+                                                      children: [
+                                                        TextSpan(
+                                                          text:
+                                                              '${bookingDetails?['parkingDate'] ?? ''} ${bookingDetails?['parkingTime'] ?? ''}',
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                color:
+                                                                    Colors
+                                                                        .black,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  RichText(
+                                                    text: TextSpan(
+                                                      text: 'Payable Time: ',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors.black,
+                                                          ),
+                                                      children: [
+                                                        TextSpan(
+                                                          text:
+                                                              formattedDuration,
+                                                          style:
+                                                              GoogleFonts.poppins(
+                                                                fontSize: 13,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                color:
+                                                                    Colors
+                                                                        .black,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
 
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                    child: Column(
-                      children: [
-
-
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                      child: Column(
+                        children: [
+                          /*
                         const SizedBox(height: 15),
                         Container(
                           decoration: BoxDecoration(
@@ -1537,322 +2042,537 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                             ],
                           ),
                         ),
-
-
-                        const SizedBox(height: 8),
-    if (amenities.isNotEmpty) ...[
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white, // Move color inside decoration
-                            borderRadius: BorderRadius.circular(5), // Set border radius
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                spreadRadius: 1,
-                                blurRadius: 2,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 5),
-                              Container(
-                                color: Colors.white,
-                                child: Align(
-                                  alignment: Alignment.center, // Aligns content to the left
-                                  child: Text(
-                                    "Facilities",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      // decoration: TextDecoration.underline, // Add underline here
-                                      decorationColor: Colors.black, // Optional: Set the color of the underline
-                                      // Optional: Set the thickness of the underline
-                                    ),
+      */
+                          const SizedBox(height: 8),
+                          if (amenities.isNotEmpty) ...[
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    Colors
+                                        .white, // Move color inside decoration
+                                borderRadius: BorderRadius.circular(
+                                  5,
+                                ), // Set border radius
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 3),
                                   ),
-                                ),
+                                ],
                               ),
-                              Divider(
-                                thickness: 0.5, // Set the thickness of the divider
-                                color: ColorUtils.primarycolor(), // Set the color of the divider
-                              ),
-                              //
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Wrap(
-                                  spacing: 6.0,
-                                  runSpacing: 6.0,
-                                  children: amenities.map((amenity) {
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        // color:  ColorUtils.primarycolor() ,
-                                          borderRadius: BorderRadius.circular(5),
-                                          border: Border.all(
-                                            color: Colors.black, // Set the color of the border
-                                            width: 0.5, // Set the width of the border
-                                          ),
-                                          boxShadow: const [
-                                            // BoxShadow(
-                                            //   color: Colors.black26,
-                                            //   blurRadius: 4.0,
-                                            //   offset: Offset(0, 2),
-                                            // ),
-                                          ]),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            _getAmenityIcon(amenity),
-                                            size: 12,
-                                            color: Colors.black,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            amenity,
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.black,
-                                              fontSize: 12,
-                                              // fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 5),
+                                  Container(
+                                    color: Colors.white,
+                                    child: Align(
+                                      alignment:
+                                          Alignment
+                                              .center, // Aligns content to the left
+                                      child: Text(
+                                        "Facilities",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          // decoration: TextDecoration.underline, // Add underline here
+                                          decorationColor:
+                                              Colors
+                                                  .black, // Optional: Set the color of the underline
+                                          // Optional: Set the thickness of the underline
+                                        ),
                                       ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                            ],
-                          ),
-                        ),
-],
-                        const SizedBox(height: 8),
-    if (services.isNotEmpty) ...[
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white, // Move color inside decoration
-                            borderRadius: BorderRadius.circular(5), // Set border radius
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                spreadRadius: 1,
-                                blurRadius: 2,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-
-                              Container(
-                                color: Colors.white,
-                                child: Align(
-                                  alignment: Alignment.center, // Aligns content to the left
-                                  child: Text(
-                                    "Additional Services",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      // decoration: TextDecoration.underline, // Add underline here
-                                      decorationColor: Colors.black, // Optional: Set the color of the underline
-                                      // Optional: Set the thickness of the underline
                                     ),
                                   ),
-                                ),
-                              ),
-                              Divider(
-                                thickness: 0.5, // Set the thickness of the divider
-                                color: ColorUtils.primarycolor(), // Set the color of the divider
-                              ),
-                              const SizedBox(height: 8),
-                              // Heading Card
-
-
-                              // Loop through the services list
-                              Wrap(
-                                spacing: 6.0,
-                                runSpacing: 6.0,
-                                children: services.asMap().entries.map((entry) {
-                                  final s = entry.value;
-
-                                  return Container(
-                                    // width: 100, // Adjust width as needed
+                                  Divider(
+                                    thickness:
+                                        0.5, // Set the thickness of the divider
+                                    color:
+                                        ColorUtils.primarycolor(), // Set the color of the divider
+                                  ),
+                                  //
+                                  Padding(
                                     padding: const EdgeInsets.all(5.0),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black, width: 0.5),
-                                      borderRadius: BorderRadius.circular(8.0),
+                                    child: Wrap(
+                                      spacing: 6.0,
+                                      runSpacing: 6.0,
+                                      children:
+                                          amenities.map((amenity) {
+                                            return Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                // color:  ColorUtils.primarycolor() ,
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
+                                                border: Border.all(
+                                                  color:
+                                                      Colors
+                                                          .black, // Set the color of the border
+                                                  width:
+                                                      0.5, // Set the width of the border
+                                                ),
+                                                boxShadow: const [
+                                                  // BoxShadow(
+                                                  //   color: Colors.black26,
+                                                  //   blurRadius: 4.0,
+                                                  //   offset: Offset(0, 2),
+                                                  // ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    _getAmenityIcon(amenity),
+                                                    size: 12,
+                                                    color: Colors.black,
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                    amenity,
+                                                    style: GoogleFonts.poppins(
+                                                      color: Colors.black,
+                                                      fontSize: 12,
+                                                      // fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          s.type,
-                                          style: GoogleFonts.poppins(fontSize: 12),
-                                          textAlign: TextAlign.center,
-                                          softWrap: true,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          ": ₹${s.amount}",
-                                          style: GoogleFonts.poppins(fontSize: 12),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        ),
-],
-                        // Add more widgets as needed
-                        // Google Map
-                        const SizedBox(height: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            // color: Colors.white, // Move color inside decoration
-                            borderRadius: BorderRadius.circular(5), // Set border radius
-                            boxShadow: const [
-                              // BoxShadow(
-                              //   color: Colors.black.withOpacity(0.1),
-                              //   spreadRadius: 1,
-                              //   blurRadius: 2,
-                              //   offset: const Offset(0, 3),
-                              // ),
-                            ],
-                          ),
-                          // color: Colors.white,
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 150,
-                                  decoration: BoxDecoration(
-                                    // border:
-                                    //     Border.all(color: Colors.grey),
-                                    borderRadius:
-                                    BorderRadius.circular(5.0),
                                   ),
-                                  child: ClipRRect(
-                                    borderRadius:
-                                    BorderRadius.circular(5.0),
-                                    child: GoogleMap(
-                                      initialCameraPosition:
-                                      CameraPosition(
-                                        target: LatLng(
-                                          double.tryParse(
-                                              _vendor?.latitude ??
-                                                  '0') ??
-                                              0.0, // Convert latitude to double
-                                          double.tryParse(
-                                              _vendor?.longitude ??
-                                                  '0') ??
-                                              0.0,
+                                  const SizedBox(height: 5),
+                                ],
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          if (services.isNotEmpty) ...[
+                            Container(
+                              decoration: BoxDecoration(
+                                color:
+                                    Colors
+                                        .white, // Move color inside decoration
+                                borderRadius: BorderRadius.circular(
+                                  5,
+                                ), // Set border radius
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 2,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    color: Colors.white,
+                                    child: Align(
+                                      alignment:
+                                          Alignment
+                                              .center, // Aligns content to the left
+                                      child: Text(
+                                        "Additional Services",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          // decoration: TextDecoration.underline, // Add underline here
+                                          decorationColor:
+                                              Colors
+                                                  .black, // Optional: Set the color of the underline
+                                          // Optional: Set the thickness of the underline
                                         ),
-                                        zoom: 15,
                                       ),
-                                      markers: {
-                                        Marker(
-                                          markerId: const MarkerId(
-                                              'vendor_location'),
-                                          position: LatLng(
-                                            double.tryParse(
-                                                _vendor?.latitude ??
-                                                    '0') ??
-                                                0.0, // Convert latitude to double
-                                            double.tryParse(
-                                                _vendor?.longitude ??
-                                                    '0') ??
-                                                0.0,
-                                          ),
-                                        ),
-                                      },
                                     ),
+                                  ),
+                                  Divider(
+                                    thickness:
+                                        0.5, // Set the thickness of the divider
+                                    color:
+                                        ColorUtils.primarycolor(), // Set the color of the divider
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Heading Card
+
+                                  // Loop through the services list
+                                  Wrap(
+                                    spacing: 6.0,
+                                    runSpacing: 6.0,
+                                    children:
+                                        services.asMap().entries.map((entry) {
+                                          final s = entry.value;
+
+                                          return Container(
+                                            // width: 100, // Adjust width as needed
+                                            padding: const EdgeInsets.all(5.0),
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: Colors.black,
+                                                width: 0.5,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  s.type,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  softWrap: true,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  ": ₹${s.amount}",
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
+                                  ),
+
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                          ],
+                          // Google Map removed as per request
+                          const SizedBox(height: 10),
+
+                          // Parse booking parking date (adjust format if needed)
+                          if (bookingDetails != null &&
+                              (bookingDetails!['status'] == 'PENDING' ||
+                                  bookingDetails!['status'] == 'Approved') &&
+                              bookingDetails!['vendorId'].toString() ==
+                                  widget.vendorid &&
+                              isTodayParking)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    await _allowParking();
+                                  },
+                                  label: Text(
+                                    'Allow Parking',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ColorUtils.primarycolor(),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 3,
+                                    shadowColor: Colors.green.withOpacity(0.3),
+                                    animationDuration: const Duration(
+                                      milliseconds: 200,
+                                    ),
+                                    enableFeedback: true,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    minimumSize: const Size(120, 20),
                                   ),
                                 ),
                               ),
+                            ),
 
-                            ],
-                          ),
-                        ),
-                        // Text(widget.vendorid),
-                        // Text(bookingDetails!['vendorId'].toString()),
-// Text(  _vendor?.longitude ??
-//     '0'),
-//                         Text(  _vendor?.latitude ??
-//                             '0'),
-                        const SizedBox(
-                          height: 10,
-                        ),
+                          const SizedBox(height: 50),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
+  void _setExiting(bool isExiting) {
+    if (!mounted) return;
+    setState(() {
+      _isExiting = isExiting;
+    });
+  }
 
-// Parse booking parking date (adjust format if needed)
+  Future<void> _handleExitButtonPressed(Map<String, dynamic> vehicle) async {
+    if (!mounted) return;
+    if (_isCheckingExit || _isExiting) return;
 
+    setState(() => _isCheckingExit = true);
+    try {
+      String amountStr = '0';
+      try {
+        amountStr = await UniversalPrintHelper.getPrintAmountFromAPI(
+          vehicle['_id']?.toString() ?? '',
+        ).timeout(_apiTimeout);
+      } catch (_) {}
 
+      final amountVal = double.tryParse(amountStr.trim()) ?? 0.0;
+      if (!mounted) return;
 
-    if (
-    bookingDetails != null &&
-    (bookingDetails!['status'] == 'PENDING' || bookingDetails!['status'] == 'Approved') &&
-    bookingDetails!['vendorId'].toString() == widget.vendorid &&
-    isTodayParking
-    )
-    Align(
-    alignment: Alignment.centerRight,
-    child: AnimatedContainer(
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeInOut,
-    child: ElevatedButton.icon(
-    onPressed: () async {
-    await _allowParking();
-    },
-    label: Text(
-    'Allow Parking',
-    style: GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    ),
-    ),
-    style: ElevatedButton.styleFrom(
-    backgroundColor: ColorUtils.primarycolor(),
-    foregroundColor: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(8),
-    ),
-    elevation: 3,
-    shadowColor: Colors.green.withOpacity(0.3),
-    animationDuration: const Duration(milliseconds: 200),
-    enableFeedback: true,
-    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    minimumSize: const Size(120, 20),
-    ),
-    ),
-    ),
-    ),
-
-    const SizedBox(
-  height: 50,
-),
-                      ],
+      if (amountVal <= 0) {
+        setState(() => _isCheckingExit = false);
+        await _performQuickExit(vehicle, '0');
+      } else {
+        setState(() => _isCheckingExit = false);
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return DraggableScrollableSheet(
+              expand: false,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
                     ),
                   ),
-                ],
-              ),
+                  child: Exitpage(
+                    currentTabIndex: 0,
+                    userid: vehicle['userId']?.toString() ?? '',
+                    otp: vehicle['otp']?.toString() ?? '',
+                    vehicletype: vehicle['vehicleType']?.toString() ?? '',
+                    bookingid: vehicle['_id']?.toString() ?? '',
+                    parkingdate: vehicle['parkingDate']?.toString() ?? '',
+                    vehiclenumber: vehicle['vehicleNumber']?.toString() ?? '',
+                    username: vehicle['userName']?.toString() ?? '',
+                    phoneno: vehicle['mobileNumber']?.toString() ?? '',
+                    parkingtime: vehicle['parkingTime']?.toString() ?? '',
+                    bookingtypetemporary: vehicle['status']?.toString() ?? '',
+                    sts: vehicle['sts']?.toString() ?? '',
+                    cartype: vehicle['carType']?.toString() ?? '',
+                    vendorid:
+                        vehicle['vendorId']?.toString() ?? widget.vendorid,
+                    bookType: vehicle['bookingType']?.toString() ?? '',
+                  ),
+                );
+              },
+            );
+          },
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isCheckingExit = false);
+      print('Exit check error: $e');
+    }
+  }
 
-            ],
-          ],
-        ),
-      ),
-    ]);
+  Future<void> _handlePrintAndExit(Map<String, dynamic> vehicle) async {
+    final String bookingId = vehicle['_id']?.toString() ?? '';
+    if (bookingId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Booking ID not found')),
+        );
+      }
+      return;
+    }
+
+    _setExiting(true);
+    try {
+      String currentAmount;
+      try {
+        currentAmount = await UniversalPrintHelper.getPrintAmountFromAPI(
+          bookingId,
+        ).timeout(_apiTimeout);
+      } catch (e) {
+        currentAmount = '0';
+      }
+
+      if (!mounted) return;
+      try {
+        await UniversalPrintHelper.printTicket(
+          context: context,
+          vendorName: vehicle['vendorName'] ?? 'Vendor',
+          bookingId: bookingId,
+          invoiceId: vehicle['invoiceId']?.toString(),
+          vehicleType: vehicle['vehicleType'] ?? '',
+          vehicleNumber: vehicle['vehicleNumber'] ?? '',
+          parkingDate: vehicle['parkingDate'] ?? '',
+          parkingTime: vehicle['parkingTime'] ?? '',
+          amount: currentAmount,
+          personName: vehicle['userName'] ?? vehicle['personName'] ?? '',
+          valetCharge:
+              double.tryParse(vehicle['valetCharge']?.toString() ?? '0') ?? 0.0,
+          mobileNumber: vehicle['mobileNumber'] ?? '',
+          vendorId: vehicle['vendorId']?.toString() ?? widget.vendorid,
+          bookType: vehicle['bookingType'] ?? vehicle['bookType'] ?? '',
+          sts: vehicle['sts']?.toString() ?? '',
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Print failed. Continuing with exit...'),
+            ),
+          );
+        }
+      }
+
+      await _performQuickExit(vehicle, currentAmount, manageLoading: false);
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => vendorChooseParkingPage(vendorid: widget.vendorid),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Exit failed: $msg')));
+      }
+    } finally {
+      _setExiting(false);
+    }
+  }
+
+  Future<void> _performQuickExit(
+    Map<String, dynamic> vehicle,
+    String amount, {
+    bool manageLoading = true,
+  }) async {
+    final String bookingId = vehicle['_id']?.toString() ?? '';
+    if (bookingId.isEmpty) return;
+
+    if (manageLoading) _setExiting(true);
+
+    try {
+      final url = Uri.parse(
+        '${ApiConfig.baseUrl}vendor/exitvehicle/$bookingId',
+      );
+      final parkedDate = vehicle['parkingDate'] ?? '';
+      final parkedTime = vehicle['parkingTime'] ?? '';
+
+      final parkedDateTime =
+          UniversalPrintHelper.tryParseDateTime(
+            date: parkedDate,
+            time: parkedTime,
+          ) ??
+          DateTime.now();
+
+      var duration = DateTime.now().difference(parkedDateTime);
+      if (duration.isNegative) duration = Duration.zero;
+      final formattedDuration = _formatDuration(duration);
+
+      final parkingCharge = double.tryParse(amount.trim()) ?? 0.0;
+      final Map<String, dynamic> requestBody = {
+        'amount': parkingCharge,
+        'hour': formattedDuration,
+        'paymentMode': 'Cash',
+      };
+
+      final userId = (vehicle['userId'] ?? '').toString().trim();
+      if (userId.isNotEmpty) {
+        try {
+          final gstData = await _fetchGstFeeForExit().timeout(_apiTimeout);
+          final gstPercentage =
+              double.tryParse(gstData['gst']?.toString() ?? '0') ?? 0.0;
+          final handlingFeeAmount =
+              double.tryParse(gstData['handlingfee']?.toString() ?? '0') ?? 0.0;
+          final gstBase = parkingCharge + handlingFeeAmount;
+          final gstAmount = (gstBase * gstPercentage) / 100;
+          final exactTotal = parkingCharge + handlingFeeAmount + gstAmount;
+          final finalTotal = _roundUpToNearestRupeeForExit(exactTotal);
+          requestBody['gstamout'] = gstAmount;
+          requestBody['handlingfee'] = handlingFeeAmount;
+          requestBody['totalamout'] = finalTotal;
+        } catch (e) {
+          print('GST fetch failed: $e');
+        }
+      }
+
+      final response = await http
+          .put(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(_exitApiTimeout);
+
+      if (response.statusCode == 200) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Vehicle exited successfully (Cash)!'),
+            ),
+          );
+          _fetchBookingDetails(); // Refresh details
+        }
+      } else {
+        String errMsg = 'Failed to exit vehicle (${response.statusCode})';
+        try {
+          final data = jsonDecode(response.body);
+          errMsg = data['message'] ?? data['error'] ?? errMsg;
+        } catch (_) {}
+        throw Exception(errMsg);
+      }
+    } finally {
+      if (manageLoading) _setExiting(false);
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours:$minutes:$seconds';
+  }
+
+  Future<Map<String, dynamic>> _fetchGstFeeForExit() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}vendor/getgstfee'),
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data is List && data.isNotEmpty && data[0] is Map) {
+        return Map<String, dynamic>.from(data[0] as Map);
+      }
+      return {'gst': '0', 'handlingfee': '0'};
+    }
+    throw Exception('Failed to load GST fees');
+  }
+
+  double _roundUpToNearestRupeeForExit(double amount) {
+    final double decimal = amount - amount.floor();
+    return decimal >= 0.5 ? amount.ceilToDouble() : amount.floorToDouble();
   }
 }
 
@@ -1916,17 +2636,21 @@ class Pendor {
       status: json['status']?.toString() ?? 'active', // Default status
       id: json['_id']?.toString() ?? '', // Handle null ID
       vendorName: json['vendorName']?.toString() ?? 'Unknown Vendor',
-      contacts: (json['contacts'] as List<dynamic>? ?? [])
-          .map((contactJson) => Contact.fromJson(contactJson))
-          .toList(),
+      contacts:
+          (json['contacts'] as List<dynamic>? ?? [])
+              .map((contactJson) => Contact.fromJson(contactJson))
+              .toList(),
       latitude: json['latitude']?.toString() ?? '0.0', // Default latitude
       longitude: json['longitude']?.toString() ?? '0.0', // Default longitude
       address: json['address']?.toString() ?? 'No Address',
       landMark: json['landMark']?.toString() ?? 'No Landmark',
       image: json['image']?.toString() ?? '', // Default empty image
-      parkingEntries: (json['parkingEntries'] as List<dynamic>? ?? [])
-          .map((parkingEntryJson) => ParkingEntry.fromJson(parkingEntryJson))
-          .toList(),
+      parkingEntries:
+          (json['parkingEntries'] as List<dynamic>? ?? [])
+              .map(
+                (parkingEntryJson) => ParkingEntry.fromJson(parkingEntryJson),
+              )
+              .toList(),
     );
   }
 
@@ -1950,10 +2674,7 @@ class Contact {
   final String name;
   final String mobile;
 
-  Contact({
-    required this.name,
-    required this.mobile,
-  });
+  Contact({required this.name, required this.mobile});
 
   factory Contact.fromJson(Map<String, dynamic> json) {
     return Contact(
@@ -1963,9 +2684,6 @@ class Contact {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'mobile': mobile,
-    };
+    return {'name': name, 'mobile': mobile};
   }
 }
