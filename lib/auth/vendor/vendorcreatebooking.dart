@@ -3038,6 +3038,37 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                         },
                       ),
                       const SizedBox(height: 15),
+                      Row(
+                        children: [
+                          _buildActionButton(
+                            "Book Now",
+                            Icons.check_circle,
+                            ColorUtils.primarycolor(),
+                            _registerParking,
+                            isDisabled: !_bookEnabled,
+                            // isLoading: _isLoading && _activeLoadingButton == 'bookNow',
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Book and Print",
+                            Icons.print,
+                            ColorUtils.primarycolor(),
+                            _bookAndPrint,
+                            isDisabled: !(_bookEnabled && _printEnabled),
+                            // isLoading: _isLoading && _activeLoadingButton == 'bookAndPrint',
+                          ),
+                          const SizedBox(width: 8),
+                          _buildActionButton(
+                            "Print and Exit",
+                            Icons.exit_to_app,
+                            ColorUtils.primarycolor(),
+                            _printAndExit,
+                            isDisabled: !(_printEnabled && _exitEnabled),
+                            // isLoading: _isLoading && _activeLoadingButton == 'printAndExit',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
                       // Compact Date/Time Picker with grey background for Instant, white for others
                       _selectedOption == 'Instant'
                           ? greyfield(
@@ -3170,37 +3201,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      Row(
-                        children: [
-                          _buildActionButton(
-                            "Book Now",
-                            Icons.check_circle,
-                            ColorUtils.primarycolor(),
-                            _registerParking,
-                            isDisabled: !_bookEnabled,
-                            // isLoading: _isLoading && _activeLoadingButton == 'bookNow',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildActionButton(
-                            "Book and Print",
-                            Icons.print,
-                            ColorUtils.primarycolor(),
-                            _bookAndPrint,
-                            isDisabled: !(_bookEnabled && _printEnabled),
-                            // isLoading: _isLoading && _activeLoadingButton == 'bookAndPrint',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildActionButton(
-                            "Print and Exit",
-                            Icons.exit_to_app,
-                            ColorUtils.primarycolor(),
-                            _printAndExit,
-                            isDisabled: !(_printEnabled && _exitEnabled),
-                            // isLoading: _isLoading && _activeLoadingButton == 'printAndExit',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
+
                       if (_paymentMode == 'Online') _buildInlineUpiQr(),
                       const SizedBox(height: 10),
                       const SizedBox(height: 10),
