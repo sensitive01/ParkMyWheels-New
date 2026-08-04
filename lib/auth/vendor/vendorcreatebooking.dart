@@ -1979,6 +1979,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     required String mobileNumber,
     String? receiptSts,
     bool instantParkingReceipt = false,
+    bool isPrintAndExit = false,
     String? operationalTimings,
   }) async {
     final displayId = UniversalPrintHelper.formatReceiptBookingId(invoiceId);
@@ -2036,9 +2037,10 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     if (isPass && passHoursForReceipt != null) {
       // Pass booking (12hr / 24hr / 48hr / 72hr)
       if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
-        await SunmiPrinter.printText(
-          '$passHoursForReceipt Hour Pass : Rs. $cleanedAmt',
-        );
+        final label = passHoursForReceipt == 24 ? 'Full Day' : '$passHoursForReceipt Hour';
+        await SunmiPrinter.printText('$label Pass');
+        await SunmiPrinter.lineWrap(1);
+        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
         await SunmiPrinter.lineWrap(1);
       }
     } else if (isSubscription) {
@@ -2068,9 +2070,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       final slabLines = _getHourlyPricingSlabLinesForVehicle(vehicleType);
       if (slabLines.isNotEmpty) {
         if (instantParkingReceipt) {
-          // Parking Charges removed for new booking instant
-          // await SunmiPrinter.printText('Parking Charges : Rs. $cleanedAmt');
-          // await SunmiPrinter.lineWrap(1);
+          if (isPrintAndExit) {
+            if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
+              await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+              await SunmiPrinter.lineWrap(1);
+            }
+          }
         } else {
           // await SunmiPrinter.printText(slabLines[0]);
           // if (slabLines.length > 1) {
@@ -2079,7 +2084,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         }
       } else if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
         // Commenting out Amount as well for instant receipts if no slab lines
-        if (!instantParkingReceipt) {
+        if (!instantParkingReceipt || isPrintAndExit) {
           await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
           await SunmiPrinter.lineWrap(1);
         }
@@ -2149,6 +2154,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     bool includeDuration = true,
     String? receiptSts,
     bool instantParkingReceipt = false,
+    bool isPrintAndExit = false,
     double? valetChargeAmount,
     String? operationalTimings,
   }) async {
@@ -2236,6 +2242,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           mobileNumber: mobileNumber,
           receiptSts: receiptSts,
           instantParkingReceipt: instantParkingReceipt,
+          isPrintAndExit: isPrintAndExit,
           operationalTimings: operationalTimings,
         );
         return;
@@ -2267,6 +2274,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           skipChargeLookup: true,
           slabLinesOverride: _getHourlyPricingSlabLinesForVehicle(vehicleType),
           instantParkingReceipt: instantParkingReceipt,
+          isPrintAndExit: isPrintAndExit,
           valetCharge: valetChargeAmount,
           operationalTimings: operationalTimings,
         );
@@ -2497,6 +2505,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
             includeDuration: false,
             receiptSts: stsSnapshot,
             instantParkingReceipt: instantReceipt,
+            isPrintAndExit: true,
             valetChargeAmount:
                 appliedValetAmount > 0 ? appliedValetAmount : null,
           );

@@ -3308,6 +3308,7 @@ class UniversalPrintHelper {
       type == 'sunmi' || type == 'sumi' || type == 'pinelabs_builtin';
 
   static Future<bool> _bindAndInitSunmi({bool init = true}) async {
+    if (_sunmiBoundAndInited) return true;
     try {
       final bool? bound = await SunmiPrinter.bindingPrinter().timeout(
         _bindTimeout,
@@ -3843,6 +3844,7 @@ class UniversalPrintHelper {
     String? bookType,
     bool skipChargeLookup = false,
     bool instantParkingReceipt = false,
+    bool isPrintAndExit = false,
     double? valetCharge,
     String? operationalTimings,
     bool isEntryReceipt = false,
@@ -3934,7 +3936,10 @@ class UniversalPrintHelper {
       final passHours = passMatch.group(1);
       if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
         await SunmiPrinter.lineWrap(1);
-        await SunmiPrinter.printText('$passHours Hour Pass : Rs. $cleanedAmt');
+        final label = passHours == '24' ? 'Full Day' : '$passHours Hour';
+        await SunmiPrinter.printText('$label Pass');
+        await SunmiPrinter.lineWrap(1);
+        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
       }
     } else if (stsNorm == 'weekly' || stsNorm == 'monthly') {
       // Subscription: print weekly / monthly label with the booking amount
@@ -3965,11 +3970,13 @@ class UniversalPrintHelper {
     } else if (slabLines.isNotEmpty) {
       await SunmiPrinter.lineWrap(1);
       if (instantParkingReceipt) {
-        final amt =
-            slabLines[0].contains(': Rs.')
-                ? slabLines[0].split(': Rs.').last.trim()
-                : slabLines[0];
-        await SunmiPrinter.printText('Parking Charges : Rs. $amt');
+        if (isPrintAndExit) {
+          final amt =
+              slabLines[0].contains(': Rs.')
+                  ? slabLines[0].split(': Rs.').last.trim()
+                  : slabLines[0];
+          await SunmiPrinter.printText('Amount : Rs. $amt');
+        }
       } else {
         // await SunmiPrinter.printText(slabLines[0]);
         // if (slabLines.length > 1) {
@@ -4029,6 +4036,7 @@ class UniversalPrintHelper {
     bool skipChargeLookup = false,
     List<String>? slabLinesOverride,
     bool instantParkingReceipt = false,
+    bool isPrintAndExit = false,
     double? valetCharge,
     String? operationalTimings,
   }) async {
@@ -4157,7 +4165,10 @@ class UniversalPrintHelper {
       // Pass booking: print pass label + amount
       final passHours = passMatchEsc.group(1);
       if (cleanedEscAmt.isNotEmpty && cleanedEscAmt != '0') {
-        bytes += '$passHours Hour Pass : Rs. $cleanedEscAmt'.codeUnits;
+        final label = passHours == '24' ? 'Full Day' : '$passHours Hour';
+        bytes += '$label Pass'.codeUnits;
+        bytes += [0x0A];
+        bytes += 'Amount : Rs. $cleanedEscAmt'.codeUnits;
         bytes += [0x0A];
       }
     } else if (stsNormEsc == 'weekly' || stsNormEsc == 'monthly') {
@@ -4189,9 +4200,10 @@ class UniversalPrintHelper {
       }
     } else if (slabLines.isNotEmpty) {
       if (instantParkingReceipt) {
-        // Parking Charges removed for new booking instant
-        // bytes += 'Parking Charges : Rs. $cleanedEscAmt'.codeUnits;
-        // bytes += [0x0A];
+        if (isPrintAndExit) {
+          bytes += 'Parking Amount : Rs. $cleanedEscAmt'.codeUnits;
+          bytes += [0x0A];
+        }
       } else {
         // for (final line in slabLines) {
         //   bytes += line.codeUnits;
@@ -4200,8 +4212,8 @@ class UniversalPrintHelper {
       }
     } else {
       if (cleanedEscAmt.isNotEmpty && cleanedEscAmt != '0') {
-        if (!instantParkingReceipt) {
-          bytes += 'Amount : Rs. $cleanedEscAmt'.codeUnits;
+        if (!instantParkingReceipt || isPrintAndExit) {
+          bytes += 'Parking Amount : Rs. $cleanedEscAmt'.codeUnits;
           bytes += [0x0A];
         }
       }
@@ -4283,8 +4295,9 @@ class UniversalPrintHelper {
     required String bookType,
     String? sts,
     String? preCalculatedDuration,
-    bool fastPrint = false,
+    bool fastPrint = true,
     bool instantParkingReceipt = false,
+    bool isPrintAndExit = false,
     double? valetCharge,
   }) async {
     // Calculate duration from parking time
@@ -4397,6 +4410,7 @@ class UniversalPrintHelper {
             bookType: bookType,
             skipChargeLookup: skipChargeLookup,
             instantParkingReceipt: instantParkingReceipt,
+            isPrintAndExit: isPrintAndExit,
             valetCharge: valetCharge,
             operationalTimings: operationalTimings,
             isEntryReceipt: formattedDuration.isEmpty,
@@ -4426,6 +4440,7 @@ class UniversalPrintHelper {
             bookType: bookType,
             skipChargeLookup: skipChargeLookup,
             instantParkingReceipt: instantParkingReceipt,
+            isPrintAndExit: isPrintAndExit,
             valetCharge: valetCharge,
             operationalTimings: operationalTimings,
             isEntryReceipt: formattedDuration.isEmpty,
