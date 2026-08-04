@@ -1980,6 +1980,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     String? receiptSts,
     bool instantParkingReceipt = false,
     bool isPrintAndExit = false,
+    double? valetChargeAmount,
     String? operationalTimings,
   }) async {
     final displayId = UniversalPrintHelper.formatReceiptBookingId(invoiceId);
@@ -2036,7 +2037,12 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
     final bool isSubscription =
         (snap == 'weekly' || snap == '15day' || snap == 'monthly') ||
         (receiptSts == null && _selectedOption == 'Subscription');
-    final cleanedAmt = _cleanAmountForReceipt(amount);
+        
+    double finalAmt = double.tryParse(amount.toString().trim()) ?? 0.0;
+    if (isPrintAndExit && valetChargeAmount != null && valetChargeAmount > 0) {
+      finalAmt += valetChargeAmount;
+    }
+    final cleanedAmt = _cleanAmountForReceipt(finalAmt.toString());
 
     if (isPass && passHoursForReceipt != null) {
       // Pass booking (12hr / 24hr / 48hr / 72hr)
@@ -2260,6 +2266,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           receiptSts: receiptSts,
           instantParkingReceipt: instantParkingReceipt,
           isPrintAndExit: isPrintAndExit,
+          valetChargeAmount: valetChargeAmount,
           operationalTimings: operationalTimings,
         );
         return;
