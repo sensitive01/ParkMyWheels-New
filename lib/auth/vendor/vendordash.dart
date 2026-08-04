@@ -4538,7 +4538,7 @@ class UniversalPrintHelper {
       'Vehicle Parking Details',
       if (empId.isNotEmpty) 'Emp ID: $empId',
       entryExitOneLine(entry, exit),
-      '',
+      '\u00A0', // Forced blank line
       '${'Type'.padRight(12)}|${'Veh'.padLeft(4)}|${'Amount'.padLeft(10)}',
       row('Hourly:', hourlyCount, hourlyAmount),
       row('12 Hrs Pass:', pass12Count, pass12Amount),
@@ -4553,7 +4553,7 @@ class UniversalPrintHelper {
       'Total Amount: ${money(cashTotal + onlineTotal)}',
       sep,
       'Powered by ParkMyWheels',
-      '',
+      '\u00A0',
     ];
   }
 
@@ -4642,7 +4642,8 @@ class UniversalPrintHelper {
           await SunmiPrinter.printText(line);
           await SunmiPrinter.lineWrap(1);
         }
-        await SunmiPrinter.lineWrap(2);
+        // Bottom spacing - using non-breaking spaces and a dot to completely defeat the printer's whitespace trimmer
+        await SunmiPrinter.printText('\u00A0\n\u00A0\n\u00A0\n\u00A0\n.');
         return;
       }
 
