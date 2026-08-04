@@ -3161,7 +3161,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             ColorUtils.primarycolor(),
                             _registerParking,
                             isDisabled: !_bookEnabled,
-                            isLoading: _isLoading && _activeLoadingButton == 'bookNow',
+                            // isLoading: _isLoading && _activeLoadingButton == 'bookNow',
                           ),
                           const SizedBox(width: 8),
                           _buildActionButton(
@@ -3170,7 +3170,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             ColorUtils.primarycolor(),
                             _bookAndPrint,
                             isDisabled: !(_bookEnabled && _printEnabled),
-                            isLoading: _isLoading && _activeLoadingButton == 'bookAndPrint',
+                            // isLoading: _isLoading && _activeLoadingButton == 'bookAndPrint',
                           ),
                           const SizedBox(width: 8),
                           _buildActionButton(
@@ -3179,7 +3179,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
                             ColorUtils.primarycolor(),
                             _printAndExit,
                             isDisabled: !(_printEnabled && _exitEnabled),
-                            isLoading: _isLoading && _activeLoadingButton == 'printAndExit',
+                            // isLoading: _isLoading && _activeLoadingButton == 'printAndExit',
                           ),
                         ],
                       ),
