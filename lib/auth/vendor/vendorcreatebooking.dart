@@ -1228,7 +1228,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           );
           final bool instantReceipt =
               _selectedOption == 'Instant' &&
-              (vehicleType == 'Car' || vehicleType == 'Bike') &&
+              (vehicleType == 'Car' || vehicleType == 'Bike' || vehicleType == 'Others' || vehicleType == 'other' || vehicleType == 'Other') &&
               _selectedPass == null &&
               isHourly;
 
@@ -2487,7 +2487,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
           );
           final bool instantReceipt =
               _selectedOption == 'Instant' &&
-              (vehicleType == 'Car' || vehicleType == 'Bike') &&
+              (vehicleType == 'Car' || vehicleType == 'Bike' || vehicleType == 'Others' || vehicleType == 'other' || vehicleType == 'Other') &&
               _selectedPass == null &&
               isHourly;
 
