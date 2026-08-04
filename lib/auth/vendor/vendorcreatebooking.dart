@@ -1990,15 +1990,19 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
 
     // Increased top spacing to prevent clipping first letter
     await SunmiPrinter.lineWrap(1);
-    await SunmiPrinter.setAlignment(1);
-    await SunmiPrinter.bold();
-    await SunmiPrinter.printText('$vendorName');
-    await SunmiPrinter.resetBold();
+    await SunmiPrinter.printText(
+      '$vendorName',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, bold: true),
+    );
     // Directly print separator after vendor name (no big gap)
-    await SunmiPrinter.printText('**************************');
-    await SunmiPrinter.setAlignment(2);
-    await SunmiPrinter.printText('Parking Receipt');
-    await SunmiPrinter.setAlignment(0);
+    await SunmiPrinter.printText(
+      '**************************',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+    );
+    await SunmiPrinter.printText(
+      'Parking Receipt',
+      style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, bold: true),
+    );
     await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.printText('Booking ID : $displayId');
     await SunmiPrinter.lineWrap(1);
@@ -2040,7 +2044,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         final label = passHoursForReceipt == 24 ? 'Full Day' : '$passHoursForReceipt Hour';
         await SunmiPrinter.printText('$label Pass');
         await SunmiPrinter.lineWrap(1);
-        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+        await SunmiPrinter.printText('Parking Amount : Rs. $cleanedAmt');
         await SunmiPrinter.lineWrap(1);
       }
     } else if (isSubscription) {
@@ -2072,7 +2076,7 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
         if (instantParkingReceipt) {
           if (isPrintAndExit) {
             if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
-              await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+              await SunmiPrinter.printText('Parking Amount : Rs. $cleanedAmt');
               await SunmiPrinter.lineWrap(1);
             }
           }
@@ -2085,29 +2089,42 @@ class _ChooseParkingPageState extends State<vendorChooseParkingPage> {
       } else if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
         // Commenting out Amount as well for instant receipts if no slab lines
         if (!instantParkingReceipt || isPrintAndExit) {
-          await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+          await SunmiPrinter.printText('Parking Amount : Rs. $cleanedAmt');
           await SunmiPrinter.lineWrap(1);
         }
       }
     }
 
+    if (bookingId.isNotEmpty) {
+      await SunmiPrinter.printText('\u00A0\n\u00A0'); // Extra space before QR
+      await SunmiPrinter.printQRCode(
+        bookingId,
+        style: SunmiQrcodeStyle(align: SunmiPrintAlign.CENTER, qrcodeSize: 7),
+      );
+      await SunmiPrinter.printText('\u00A0\n\u00A0'); // Extra space after QR
+    }
+
     if (operationalTimings != null && operationalTimings.isNotEmpty) {
       await SunmiPrinter.lineWrap(1);
-      await SunmiPrinter.setAlignment(1);
       await SunmiPrinter.printText('Timings : $operationalTimings');
     }
 
-    await SunmiPrinter.setAlignment(1);
     await SunmiPrinter.printText(
       'we are not responsible for any belongings inside and outside of the vehicle.',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
     );
     await SunmiPrinter.lineWrap(1);
-    await SunmiPrinter.printText('**************************');
+    await SunmiPrinter.printText(
+      '**************************',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+    );
     await SunmiPrinter.lineWrap(1); // Ensure "Powered by" starts on next line
-    await SunmiPrinter.setAlignment(1);
-    await SunmiPrinter.printText('Powered by ParkMyWheels');
-    await SunmiPrinter.lineWrap(2);
-    await SunmiPrinter.lineWrap(3);
+    await SunmiPrinter.printText(
+      'Powered by ParkMyWheels',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, bold: true),
+    );
+    // Bottom spacing - using non-breaking spaces and a dot to completely defeat the printer's whitespace trimmer
+    await SunmiPrinter.printText('\u00A0\n\u00A0\n\u00A0\n\u00A0\n.');
   }
 
   double _getValetChargeAmount() {

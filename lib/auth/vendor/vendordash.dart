@@ -3307,20 +3307,14 @@ class UniversalPrintHelper {
   static bool _isBuiltinPrinterType(String type) =>
       type == 'sunmi' || type == 'sumi' || type == 'pinelabs_builtin';
 
-  static Future<bool> _bindAndInitSunmi({bool init = true}) async {
-    if (_sunmiBoundAndInited) return true;
+  static Future<bool> _bindAndInitSunmi({bool init = true, bool forceBind = false}) async {
+    if (_sunmiBoundAndInited && !forceBind) return true;
     try {
-      final bool? bound = await SunmiPrinter.bindingPrinter().timeout(
+      final bool? bound = await SunmiPrinterPlus().rebindPrinter().timeout(
         _bindTimeout,
       );
       if (bound != true) return false;
-      if (init) {
-        try {
-          await SunmiPrinter.initPrinter().timeout(_initTimeout);
-        } catch (_) {
-          // Binding succeeded; some devices print without init.
-        }
-      }
+      // initPrinter is no longer required in sunmi_printer_plus 4.x
       _sunmiBoundAndInited = true;
       return true;
     } catch (_) {
@@ -3876,15 +3870,19 @@ class UniversalPrintHelper {
 
     // Increased top spacing to prevent clipping first letter
     await SunmiPrinter.lineWrap(1);
-    await SunmiPrinter.setAlignment(1);
-    await SunmiPrinter.bold();
-    await SunmiPrinter.printText(headerVendorName);
-    await SunmiPrinter.resetBold();
+    await SunmiPrinter.printText(
+      headerVendorName,
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, bold: true),
+    );
     // Directly print separator after vendor name (no big gap)
-    await SunmiPrinter.printText('**************************');
-    await SunmiPrinter.setAlignment(2);
-    await SunmiPrinter.printText('Parking Receipt');
-    await SunmiPrinter.setAlignment(0);
+    await SunmiPrinter.printText(
+      '**************************',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+    );
+    await SunmiPrinter.printText(
+      'Parking Receipt',
+      style: SunmiTextStyle(align: SunmiPrintAlign.RIGHT, bold: true),
+    );
     await SunmiPrinter.lineWrap(1);
     await SunmiPrinter.printText('Booking ID : $displayId');
     await SunmiPrinter.lineWrap(1);
@@ -3939,7 +3937,7 @@ class UniversalPrintHelper {
         final label = passHours == '24' ? 'Full Day' : '$passHours Hour';
         await SunmiPrinter.printText('$label Pass');
         await SunmiPrinter.lineWrap(1);
-        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+        await SunmiPrinter.printText('Parking Amount : Rs. $cleanedAmt');
       }
     } else if (stsNorm == 'weekly' || stsNorm == 'monthly') {
       // Subscription: print weekly / monthly label with the booking amount
@@ -3975,7 +3973,7 @@ class UniversalPrintHelper {
               slabLines[0].contains(': Rs.')
                   ? slabLines[0].split(': Rs.').last.trim()
                   : slabLines[0];
-          await SunmiPrinter.printText('Amount : Rs. $amt');
+          await SunmiPrinter.printText('Parking Amount : Rs. $amt');
         }
       } else {
         // await SunmiPrinter.printText(slabLines[0]);
@@ -3985,34 +3983,42 @@ class UniversalPrintHelper {
       }
     } else {
       if (cleanedAmt.isNotEmpty && cleanedAmt != '0') {
-        await SunmiPrinter.printText('Amount : Rs. $cleanedAmt');
+        await SunmiPrinter.printText('Parking Amount : Rs. $cleanedAmt');
       }
     }
 
-    if (bookingId.isNotEmpty && isEntryReceipt) {
-      await SunmiPrinter.lineWrap(1);
-      await SunmiPrinter.setAlignment(1);
-      await SunmiPrinter.printQRCode(bookingId);
+    if (bookingId.isNotEmpty) {
+      await SunmiPrinter.printText('\u00A0\n\u00A0'); // Extra space before QR
+      await SunmiPrinter.printQRCode(
+        bookingId,
+        style: SunmiQrcodeStyle(align: SunmiPrintAlign.CENTER, qrcodeSize: 7),
+      );
+      await SunmiPrinter.printText('\u00A0\n\u00A0'); // Extra space after QR
     }
 
     if (operationalTimings != null && operationalTimings.isNotEmpty) {
       await SunmiPrinter.lineWrap(1);
-      await SunmiPrinter.setAlignment(1);
       await SunmiPrinter.printText('Timings : $operationalTimings');
     }
 
     await SunmiPrinter.lineWrap(1);
-    await SunmiPrinter.setAlignment(1);
     await SunmiPrinter.printText(
       'we are not responsible for any belongings inside and outside of the vehicle.',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
     );
     await SunmiPrinter.lineWrap(1);
-    await SunmiPrinter.printText('**************************');
+    await SunmiPrinter.printText(
+      '**************************',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER),
+    );
     await SunmiPrinter.lineWrap(1); // Ensure "Powered by" starts on next line
-    await SunmiPrinter.printText('Powered by ParkMyWheels');
+    await SunmiPrinter.printText(
+      'Powered by ParkMyWheels',
+      style: SunmiTextStyle(align: SunmiPrintAlign.CENTER, bold: true),
+    );
 
-    // Bottom spacing
-    await SunmiPrinter.lineWrap(2);
+    // Bottom spacing - using non-breaking spaces and a dot to completely defeat the printer's whitespace trimmer
+    await SunmiPrinter.printText('\u00A0\n\u00A0\n\u00A0\n\u00A0\n.');
   }
 
   // Print using ESC/POS (Pinelabs) printer with basic commands
@@ -4219,7 +4225,7 @@ class UniversalPrintHelper {
       }
     }
 
-    if (bookingId.isNotEmpty && isEntryReceipt) {
+    if (bookingId.isNotEmpty) {
       int storeLen = bookingId.length + 3;
       int storePL = storeLen % 256;
       int storePH = storeLen ~/ 256;
@@ -4227,8 +4233,8 @@ class UniversalPrintHelper {
       bytes += [0x1B, 0x61, 0x01]; // ESC a 1 (Centered)
       // QR Code: Select model 2
       bytes += [0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00];
-      // QR Code: Set size to 5
-      bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05];
+      // QR Code: Set size to 7 (increased from 5)
+      bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x07];
       // QR Code: Set error correction to Q (25%)
       bytes += [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x32];
       // QR Code: Store data

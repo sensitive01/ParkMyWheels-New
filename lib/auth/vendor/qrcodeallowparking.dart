@@ -23,6 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../customer/dummypages/drawermyspace.dart' hide ParkingEntry;
 import '../customer/dummypages/myspaceeditslotchargesamenties.dart'
     show ParkingEntry;
+import 'package:mywheels/auth/vendor/vendorcreatebooking.dart';
 import 'bookings.dart';
 import 'menusscreen.dart';
 import 'package:mywheels/auth/vendor/paytimeamount.dart';
@@ -356,6 +357,17 @@ class _qrcodeallowparkState extends State<qrcodeallowpark>
     return Scaffold(
       backgroundColor: ColorUtils.secondarycolor(),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => vendorChooseParkingPage(vendorid: widget.vendorid),
+              ),
+            );
+          },
+        ),
         titleSpacing: 15,
         automaticallyImplyLeading: false,
         backgroundColor: ColorUtils.secondarycolor(),
